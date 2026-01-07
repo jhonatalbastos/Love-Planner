@@ -59,8 +59,6 @@ const INITIAL_PREFS: UserPreferences = {
   intimacyReasons: ['Cansaço', 'Estresse', 'Menstruação', 'Dor/Doença', 'Rotina', 'Sem Clima', 'Brigados'],
   conflictReasons: ['Ciúmes', 'Finanças', 'Rotina', 'Família', 'Atenção', 'Limpeza'],
   aiConfig: {
-    provider: 'gemini',
-    geminiKey: '',
     groqKey: ''
   }
 };
@@ -108,6 +106,47 @@ export const AppProvider: React.FC<{ children: React.ReactNode, currentUser: Use
         .select('*')
         .eq('id', currentUser.id)
         .single();
+
+      // --- SELF-HEALING: Restore from Metadata if Profile missing ---
+      if (!profile && currentUser.user_metadata) {
+        // User logged in but has no profile row (common after email confirmation)
+        // Try to restore from the metadata we saved during register()
+        const meta = currentUser.user_metadata;
+        if (meta.names) {
+          console.log("Restoring profile from metadata...");
+          const pairingCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+          // Generate photo URL
+          const photoUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${meta.names.replace('&', '+')}`;
+
+          const newProfile = {
+            id: currentUser.id,
+            email: currentUser.email,
+            names: meta.names || 'Casal',
+            start_date: meta.start_date || new Date().toISOString(),
+            photo_url: photoUrl,
+            pairing_code: pairingCode,
+            connection_status: 'single'
+          };
+
+          // Insert into Supabase
+          await supabase.from('profiles').upsert(newProfile);
+
+          // Set local state immediately to avoid reload need
+          setUserProfile({
+            names: newProfile.names,
+            startDate: newProfile.start_date,
+            photoUrl: newProfile.photo_url,
+            pairingCode: newProfile.pairing_code,
+            connectionStatus: 'single',
+            partnerName: undefined
+          });
+
+          // Resume execution as if we fetched it
+          // Note: We won't re-fetch 'profile', we just used the data we created.
+        }
+      }
+      // -------------------------------------------------------------
 
       if (profile) {
         // Fetch Partner Name if connected

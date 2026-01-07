@@ -94,7 +94,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       email,
       password: pass,
       options: {
-        data: { names }
+        data: {
+          names,
+          start_date: startDate // Persist in metadata as backup
+        }
       }
     });
 

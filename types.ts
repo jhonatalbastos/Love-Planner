@@ -24,6 +24,11 @@ export interface User {
   id: string;
   email: string;
   name?: string;
+  user_metadata?: {
+    names?: string;
+    start_date?: string;
+    [key: string]: any;
+  };
 }
 
 export interface UserProfile {
