@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Love Planner 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            },
+            colors: {
+              primary: {
+                DEFAULT: '#f42536',
+                hover: '#d91b2c',
+                soft: '#ffe5e7',
+                dark: '#9f1239'
+              },
+              background: {
+                light: '#fcf8f8',
+                dark: '#221011',
+              },
+              card: {
+                light: '#ffffff',
+                dark: '#2d1517',
+              },
+              text: {
+                main: '#1c0d0e',
+                muted: 'var(--color-text-muted)',
+                light: '#ffffff'
+              },
+              border: {
+                light: 'var(--color-border-light)',
+                dark: '#4a2326'
+              }
+            },
+            boxShadow: {
+              'soft': '0 4px 20px -2px rgba(244, 37, 54, 0.08)',
+              'glow': '0 0 15px rgba(244, 37, 54, 0.3)',
+              'nav': '0 -4px 20px rgba(0,0,0,0.05)'
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      :root {
+        --color-text-muted: #9c4950;
+        --color-border-light: #e8ced1;
+      }
+      .dark {
+        --color-text-muted: #fda4af; /* Lighter pink/red for better contrast */
+        --color-border-light: #5e2c30;
+      }
+      .material-symbols-rounded {
+        font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      /* New Custom Scrollbar */
+      .thin-scrollbar {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(203, 213, 225, 0.5) transparent;
+      }
+      .dark .thin-scrollbar {
+        scrollbar-color: rgba(75, 85, 99, 0.5) transparent;
+      }
+      .thin-scrollbar::-webkit-scrollbar {
+        height: 4px;
+      }
+      .thin-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .thin-scrollbar::-webkit-scrollbar-thumb {
+        background-color: rgba(203, 213, 225, 0.5);
+        border-radius: 9999px;
+      }
+      .dark .thin-scrollbar::-webkit-scrollbar-thumb {
+        background-color: rgba(75, 85, 99, 0.5);
+      }
+      body {
+        -webkit-tap-highlight-color: transparent;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "@google/genai": "https://esm.sh/@google/genai",
+    "jspdf": "https://esm.sh/jspdf@2.5.1",
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@^2.90.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-background-light dark:bg-background-dark text-text-main dark:text-text-light transition-colors duration-200 antialiased selection:bg-primary selection:text-white">
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>

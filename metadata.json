@@ -1,0 +1,7 @@
+{
+  "name": "Love Planner",
+  "description": "A comprehensive relationship management app for couples featuring shared journals, goal tracking, agreements, and AI coaching.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
