@@ -33,7 +33,7 @@ export const Journal: React.FC<Props> = ({ onBack }) => {
   const [streak, setStreak] = useState(0); // This could be calculated from answers in future
 
   const [showFavorites, setShowFavorites] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
+
   const [isGenerating, setIsGenerating] = useState(false);
 
   const topRef = useRef<HTMLDivElement>(null);
@@ -189,43 +189,7 @@ export const Journal: React.FC<Props> = ({ onBack }) => {
             <span className="material-symbols-rounded text-[24px]">arrow_back</span>
           </button>
           <h2 className="text-lg font-bold leading-tight tracking-tight flex-1 text-center">Diário do Casal</h2>
-          <div className="flex size-10 items-center justify-end relative">
-            <button
-              onClick={() => setShowSettings(!showSettings)}
-              className="flex size-10 shrink-0 items-center justify-center rounded-full active:bg-black/5 dark:active:bg-white/10 transition-colors text-primary"
-            >
-              <span className="material-symbols-rounded">settings</span>
-            </button>
 
-            {showSettings && (
-              <>
-                <div className="fixed inset-0 z-10" onClick={() => setShowSettings(false)}></div>
-                <div className="absolute top-12 right-0 z-20 bg-white dark:bg-card-dark rounded-xl shadow-xl border border-gray-100 dark:border-white/10 overflow-hidden min-w-[160px] animate-[fadeIn_0.1s_ease-out]">
-                  <div className="p-2">
-                    <p className="text-[10px] font-bold text-text-muted uppercase mb-2 px-2">Provedor IA</p>
-                    <div className="flex bg-gray-100 dark:bg-white/5 rounded-lg p-1 gap-1">
-                      {[
-                        { id: 'gemini', label: 'Gemini', icon: 'auto_awesome' },
-                        { id: 'groq', label: 'Groq', icon: 'speed' }
-                      ].map(opt => (
-                        <button
-                          key={opt.id}
-                          onClick={() => updatePreferences({ aiConfig: { ...preferences.aiConfig, provider: opt.id as any } })}
-                          className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-xs font-bold transition-all ${preferences.aiConfig?.provider === opt.id
-                              ? 'bg-white dark:bg-card-dark shadow-sm text-primary'
-                              : 'text-gray-400 hover:text-gray-600'
-                            }`}
-                        >
-                          <span className="material-symbols-rounded text-[14px]">{opt.icon}</span>
-                          {opt.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
         </div>
         <div className="px-4 pb-3 max-w-md mx-auto w-full">
           <div className="flex items-center justify-between bg-white dark:bg-white/5 rounded-xl p-2 px-3 border border-primary/5 dark:border-white/5 shadow-sm backdrop-blur-sm">

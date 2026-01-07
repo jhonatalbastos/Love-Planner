@@ -29,7 +29,7 @@ export const AICoach: React.FC<Props> = ({ onBack }) => {
   const { userProfile, stats, logs, agreements, preferences, goals, specialDates, updatePreferences } = useApp();
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [showMenu, setShowMenu] = useState(false);
+
 
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -165,7 +165,7 @@ export const AICoach: React.FC<Props> = ({ onBack }) => {
       sender: 'ai',
       timestamp: Date.now()
     }]);
-    setShowMenu(false);
+
   };
 
   return (
@@ -177,8 +177,8 @@ export const AICoach: React.FC<Props> = ({ onBack }) => {
           </button>
           <div className="flex flex-col items-center">
             <div className="flex items-center gap-2">
-              <span className="material-symbols-rounded text-primary text-[24px]">{preferences.aiConfig.provider === 'groq' ? 'speed' : 'auto_awesome'}</span>
-              <h1 className="text-lg font-bold tracking-tight">Mentor ({preferences.aiConfig.provider === 'groq' ? 'Groq' : 'Gemini'})</h1>
+              <span className="material-symbols-rounded text-primary text-[24px]">speed</span>
+              <h1 className="text-lg font-bold tracking-tight">Mentor IA</h1>
             </div>
             <div className="flex items-center gap-1 text-xs font-medium text-text-muted">
               <span className="relative flex h-2 w-2 mr-1">
@@ -188,49 +188,7 @@ export const AICoach: React.FC<Props> = ({ onBack }) => {
               Conectado aos seus dados
             </div>
           </div>
-          <button
-            onClick={() => setShowMenu(!showMenu)}
-            className="flex items-center justify-center size-10 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors relative"
-          >
-            <span className="material-symbols-rounded text-[24px]">settings</span>
-          </button>
 
-          {/* Settings Menu */}
-          {showMenu && (
-            <>
-              <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)}></div>
-              <div className="absolute top-14 right-4 z-20 bg-white dark:bg-card-dark rounded-xl shadow-xl border border-gray-100 dark:border-white/10 overflow-hidden min-w-[160px] animate-[fadeIn_0.1s_ease-out]">
-                <div className="p-2 border-b border-gray-100 dark:border-white/5">
-                  <p className="text-[10px] font-bold text-text-muted uppercase mb-2 px-2">Provedor IA</p>
-                  <div className="flex bg-gray-100 dark:bg-white/5 rounded-lg p-1 gap-1">
-                    {[
-                      { id: 'gemini', label: 'Gemini', icon: 'auto_awesome' },
-                      { id: 'groq', label: 'Groq', icon: 'speed' }
-                    ].map(opt => (
-                      <button
-                        key={opt.id}
-                        onClick={() => updatePreferences({ aiConfig: { ...preferences.aiConfig, provider: opt.id as any } })}
-                        className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-xs font-bold transition-all ${preferences.aiConfig?.provider === opt.id
-                          ? 'bg-white dark:bg-card-dark shadow-sm text-primary'
-                          : 'text-gray-400 hover:text-gray-600'
-                          }`}
-                      >
-                        <span className="material-symbols-rounded text-[14px]">{opt.icon}</span>
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <button
-                  onClick={handleResetChat}
-                  className="w-full text-left px-4 py-3 text-sm hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 flex items-center gap-2 font-medium"
-                >
-                  <span className="material-symbols-rounded text-[18px]">restart_alt</span> Reiniciar
-                </button>
-              </div>
-            </>
-          )}
         </div>
       </header>
 

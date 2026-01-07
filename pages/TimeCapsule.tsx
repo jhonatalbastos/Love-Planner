@@ -10,7 +10,7 @@ interface TimeCapsuleProps {
 export const TimeCapsule: React.FC<TimeCapsuleProps> = ({ onBack }) => {
   const { logs, memories, addMemory, userProfile, preferences, updatePreferences } = useApp();
   const [isGenerating, setIsGenerating] = useState(false);
-  const [showMenu, setShowMenu] = useState(false);
+
   const currentDate = new Date();
 
   const handleGenerateMemory = async () => {
@@ -91,43 +91,7 @@ export const TimeCapsule: React.FC<TimeCapsuleProps> = ({ onBack }) => {
         <h2 className="text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center truncate px-2">
           Cápsula do Tempo
         </h2>
-        <div className="relative">
-          <button
-            onClick={() => setShowMenu(!showMenu)}
-            className="flex size-10 shrink-0 items-center justify-center rounded-full active:bg-black/5 dark:active:bg-white/10 transition-colors text-primary"
-          >
-            <span className="material-symbols-rounded">settings</span>
-          </button>
 
-          {showMenu && (
-            <>
-              <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)}></div>
-              <div className="absolute top-12 right-0 z-20 bg-white dark:bg-card-dark rounded-xl shadow-xl border border-gray-100 dark:border-white/10 overflow-hidden min-w-[160px] animate-[fadeIn_0.1s_ease-out]">
-                <div className="p-2">
-                  <p className="text-[10px] font-bold text-text-muted uppercase mb-2 px-2">Provedor IA</p>
-                  <div className="flex bg-gray-100 dark:bg-white/5 rounded-lg p-1 gap-1">
-                    {[
-                      { id: 'gemini', label: 'Gemini', icon: 'auto_awesome' },
-                      { id: 'groq', label: 'Groq', icon: 'speed' }
-                    ].map(opt => (
-                      <button
-                        key={opt.id}
-                        onClick={() => updatePreferences({ aiConfig: { ...preferences.aiConfig, provider: opt.id as any } })}
-                        className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-xs font-bold transition-all ${preferences.aiConfig?.provider === opt.id
-                            ? 'bg-white dark:bg-card-dark shadow-sm text-primary'
-                            : 'text-gray-400 hover:text-gray-600'
-                          }`}
-                      >
-                        <span className="material-symbols-rounded text-[14px]">{opt.icon}</span>
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-        </div>
       </header>
 
       <div className="flex flex-col items-center pt-6 pb-2 px-6 text-center">

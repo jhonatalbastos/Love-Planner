@@ -2,8 +2,6 @@
 import Groq from "groq-sdk";
 
 export interface AIConfig {
-    provider: 'gemini' | 'groq';
-    geminiKey: string;
     groqKey: string;
 }
 
