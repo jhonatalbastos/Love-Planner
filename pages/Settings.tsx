@@ -525,184 +525,145 @@ export const Settings: React.FC = () => {
           <h3 className="px-1 pb-2 text-sm font-semibold uppercase tracking-wider text-text-muted/70">Inteligência Artificial</h3>
           <div className="bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-black/5 dark:border-white/5 overflow-hidden p-4 space-y-4">
 
-            <div>
-              <label className="text-xs font-bold text-text-muted uppercase mb-2 block">Provedor de IA</label>
-              <div className="flex bg-gray-100 dark:bg-white/5 rounded-lg p-1 gap-1">
-                {[
-                  { id: 'gemini', label: 'Google Gemini', icon: 'auto_awesome' },
-                  { id: 'groq', label: 'Groq (Llama)', icon: 'speed' }
-                ].map(opt => (
-                  <button
-                    key={opt.id}
-                    onClick={() => updatePreferences({ aiConfig: { ...preferences.aiConfig, provider: opt.id as any } })}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-sm font-bold transition-all ${preferences.aiConfig?.provider === opt.id
-                      ? 'bg-white dark:bg-card-dark shadow-sm text-primary'
-                      : 'text-gray-400 hover:text-gray-600'
-                      }`}
-                  >
-                    <span className="material-symbols-rounded text-[18px]">{opt.icon}</span>
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {preferences.aiConfig?.provider === 'gemini' ? (
-              <div className="animate-[fadeIn_0.2s_ease-out]">
-                <label className="text-xs font-bold text-text-muted uppercase mb-1 block">Chave API do Google (Gemini)</label>
-                <input
-                  type="password"
-                  className="w-full p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 outline-none focus:border-primary text-sm font-mono"
-                  placeholder="Cole sua chave AI Studio aqui..."
-                  value={preferences.aiConfig?.geminiKey || ''}
-                  onChange={e => updatePreferences({ aiConfig: { ...preferences.aiConfig, geminiKey: e.target.value } })}
-                />
-                <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-[10px] text-blue-500 hover:underline mt-1 flex items-center gap-1">
-                  <span className="material-symbols-rounded text-[12px]">open_in_new</span>
-                  Obter chave gratuita no Google AI Studio
-                </a>
-              </div>
-            ) : (
-              <div className="animate-[fadeIn_0.2s_ease-out]">
-                <label className="text-xs font-bold text-text-muted uppercase mb-1 block">Chave API da Groq</label>
-                <input
-                  type="password"
-                  className="w-full p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 outline-none focus:border-primary text-sm font-mono"
-                  placeholder="Cole sua chave Groq aqui..."
-                  value={preferences.aiConfig?.groqKey || ''}
-                  onChange={e => updatePreferences({ aiConfig: { ...preferences.aiConfig, groqKey: e.target.value } })}
-                />
-                <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" className="text-[10px] text-orange-500 hover:underline mt-1 flex items-center gap-1">
-                  <span className="material-symbols-rounded text-[12px]">open_in_new</span>
-                  Obter chave gratuita na Groq Cloud
-                </a>
-              </div>
-            )}
-
-            <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-900/30">
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-900/30 mb-4">
               <div className="flex items-start gap-2">
                 <span className="material-symbols-rounded text-blue-600 dark:text-blue-400 text-lg mt-0.5">info</span>
                 <p className="text-xs text-blue-800 dark:text-blue-200 leading-snug">
-                  {preferences.aiConfig?.provider === 'gemini'
-                    ? "O Gemini é o modelo padrão do Google. É equilibrado e inteligente."
-                    : "A Groq é extremamente rápida e usa modelos Llama (Meta). Ótimo para respostas instantâneas."
-                  }
+                  Este aplicativo utiliza a tecnologia Groq (Llama) para fornecer respostas rápidas e inteligentes.
                 </p>
               </div>
             </div>
 
-          </div>
-        </section>
-
-        <section>
-          <h3 className="px-1 pb-2 text-sm font-semibold uppercase tracking-wider text-text-muted/70">Aparência & Navegação</h3>
-          <div className="bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-black/5 dark:border-white/5 overflow-hidden p-2 space-y-4">
-
-            {/* Start Screen Selector */}
-            <div className="px-2">
-              <label className="block text-xs font-bold text-text-muted uppercase mb-2">Tela Inicial Padrão</label>
-              <div className="relative">
-                <span className="material-symbols-rounded absolute left-3 top-2.5 text-gray-400 pointer-events-none">home_app_logo</span>
-                <select
-                  value={preferences.defaultScreen || Screen.Dashboard}
-                  onChange={(e) => updatePreferences({ defaultScreen: e.target.value as Screen })}
-                  className="w-full bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-lg py-2.5 pl-10 pr-4 outline-none focus:border-primary text-sm appearance-none cursor-pointer"
-                >
-                  <option value={Screen.DailyLog}>Diário</option>
-                  <option value={Screen.Dashboard}>Estatísticas (Dashboard)</option>
-                  <option value={Screen.Goals}>Metas</option>
-                  <option value={Screen.Agreements}>Acordos</option>
-                  <option value={Screen.Journal}>Diário do Casal (Perguntas)</option>
-                </select>
-                <span className="material-symbols-rounded absolute right-3 top-3 text-gray-400 pointer-events-none text-sm">expand_more</span>
-              </div>
+            <div className="animate-[fadeIn_0.2s_ease-out]">
+              <label className="text-xs font-bold text-text-muted uppercase mb-1 block">Chave API da Groq</label>
+              <input
+                type="password"
+                className="w-full p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 outline-none focus:border-primary text-sm font-mono"
+                placeholder="Cole sua chave Groq aqui..."
+                value={preferences.aiConfig?.groqKey || ''}
+                onChange={e => updatePreferences({ aiConfig: { ...preferences.aiConfig, groqKey: e.target.value } })}
+              />
+              <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" className="text-[10px] text-orange-500 hover:underline mt-1 flex items-center gap-1">
+                <span className="material-symbols-rounded text-[12px]">open_in_new</span>
+                Obter chave gratuita na Groq Cloud
+              </a>
             </div>
 
-            <div className="h-px w-full bg-gray-100 dark:bg-white/5"></div>
 
-            {/* Theme Selector */}
-            <div className="grid grid-cols-3 gap-1">
-              {[
-                { val: 'light', icon: 'light_mode', label: 'Claro' },
-                { val: 'dark', icon: 'dark_mode', label: 'Escuro' },
-                { val: 'system', icon: 'settings_brightness', label: 'Auto' }
-              ].map(opt => (
-                <label key={opt.val} className="cursor-pointer group">
-                  <input
-                    type="radio"
-                    name="theme"
-                    value={opt.val}
-                    className="peer sr-only"
-                    checked={theme === opt.val}
-                    onChange={() => setTheme(opt.val as any)}
-                  />
-                  <div className="flex flex-col items-center justify-center gap-2 rounded-lg py-3 px-2 transition-all duration-200 peer-checked:bg-primary/10 peer-checked:text-primary text-text-muted hover:bg-black/5 dark:hover:bg-white/5">
-                    <span className="material-symbols-rounded">{opt.icon}</span>
-                    <span className="text-xs font-medium">{opt.label}</span>
-                  </div>
-                </label>
-              ))}
-            </div>
           </div>
-        </section>
 
-        <section>
-          <h3 className="px-1 pb-2 text-sm font-semibold uppercase tracking-wider text-text-muted/70">Personalização</h3>
-          <div className="space-y-3">
-            {renderListManager(`Ações de ${partnerName}`, 'partnerActionOptions')}
-            {renderListManager(`Ações de ${myName}`, 'myActionOptions')}
-            {renderListManager('Motivos de Sem Intimidade', 'intimacyReasons')}
-            {renderListManager('Motivos de Discussão', 'conflictReasons')}
-          </div>
-        </section>
-
-        <section>
-          <h3 className="px-1 pb-2 text-sm font-semibold uppercase tracking-wider text-text-muted/70">Preferências</h3>
-          <div className="bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-black/5 dark:border-white/5 divide-y divide-black/5 dark:divide-white/5 overflow-hidden">
-            {[
-              { id: 'dailyReminder', icon: 'notifications', label: 'Lembrete Diário', color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-100 dark:bg-blue-900/30' },
-              { id: 'coachTips', icon: 'tips_and_updates', label: 'Dicas do Mentor', color: 'text-primary dark:text-pink-400', bg: 'bg-pink-100 dark:bg-pink-900/30' },
-              { id: 'biometrics', icon: 'fingerprint', label: 'Bloqueio com Biometria', color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-900/30' }
-            ].map((item) => {
-              const prefKey = item.id as keyof UserPreferences;
-              return (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between p-4 active:bg-black/5 dark:active:bg-white/5 cursor-pointer"
-                  onClick={() => handlePreferenceToggle(prefKey)}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`flex h-8 w-8 items-center justify-center rounded-full ${item.bg} ${item.color}`}>
-                      <span className="material-symbols-rounded !text-[18px]">{item.icon}</span>
-                    </div>
-                    <span className="font-medium text-sm">{item.label}</span>
-                  </div>
-                  <div className="relative inline-block w-12 align-middle select-none">
-                    <input
-                      type="checkbox"
-                      checked={!!preferences[prefKey]}
-                      readOnly
-                      className="peer sr-only"
-                    />
-                    <div className="w-12 h-6 bg-gray-200 dark:bg-gray-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        <div className="pt-2 pb-8 flex flex-col items-center gap-4">
-          <button
-            onClick={logout}
-            className="w-full rounded-xl bg-card-light dark:bg-card-dark border border-primary/20 p-3 text-primary font-bold text-sm shadow-sm active:scale-[0.98] transition-all hover:bg-primary/5 flex items-center justify-center gap-2"
-          >
-            <span className="material-symbols-rounded">logout</span>
-            Sair da Conta
-          </button>
-          <p className="text-xs text-text-muted/60 dark:text-text-muted/40 font-medium">Love Planner v2.3.0</p>
         </div>
-      </main>
+      </section>
+
+      <section>
+        <h3 className="px-1 pb-2 text-sm font-semibold uppercase tracking-wider text-text-muted/70">Aparência & Navegação</h3>
+        <div className="bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-black/5 dark:border-white/5 overflow-hidden p-2 space-y-4">
+
+          {/* Start Screen Selector */}
+          <div className="px-2">
+            <label className="block text-xs font-bold text-text-muted uppercase mb-2">Tela Inicial Padrão</label>
+            <div className="relative">
+              <span className="material-symbols-rounded absolute left-3 top-2.5 text-gray-400 pointer-events-none">home_app_logo</span>
+              <select
+                value={preferences.defaultScreen || Screen.Dashboard}
+                onChange={(e) => updatePreferences({ defaultScreen: e.target.value as Screen })}
+                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-lg py-2.5 pl-10 pr-4 outline-none focus:border-primary text-sm appearance-none cursor-pointer"
+              >
+                <option value={Screen.DailyLog}>Diário</option>
+                <option value={Screen.Dashboard}>Estatísticas (Dashboard)</option>
+                <option value={Screen.Goals}>Metas</option>
+                <option value={Screen.Agreements}>Acordos</option>
+                <option value={Screen.Journal}>Diário do Casal (Perguntas)</option>
+              </select>
+              <span className="material-symbols-rounded absolute right-3 top-3 text-gray-400 pointer-events-none text-sm">expand_more</span>
+            </div>
+          </div>
+
+          <div className="h-px w-full bg-gray-100 dark:bg-white/5"></div>
+
+          {/* Theme Selector */}
+          <div className="grid grid-cols-3 gap-1">
+            {[
+              { val: 'light', icon: 'light_mode', label: 'Claro' },
+              { val: 'dark', icon: 'dark_mode', label: 'Escuro' },
+              { val: 'system', icon: 'settings_brightness', label: 'Auto' }
+            ].map(opt => (
+              <label key={opt.val} className="cursor-pointer group">
+                <input
+                  type="radio"
+                  name="theme"
+                  value={opt.val}
+                  className="peer sr-only"
+                  checked={theme === opt.val}
+                  onChange={() => setTheme(opt.val as any)}
+                />
+                <div className="flex flex-col items-center justify-center gap-2 rounded-lg py-3 px-2 transition-all duration-200 peer-checked:bg-primary/10 peer-checked:text-primary text-text-muted hover:bg-black/5 dark:hover:bg-white/5">
+                  <span className="material-symbols-rounded">{opt.icon}</span>
+                  <span className="text-xs font-medium">{opt.label}</span>
+                </div>
+              </label>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h3 className="px-1 pb-2 text-sm font-semibold uppercase tracking-wider text-text-muted/70">Personalização</h3>
+        <div className="space-y-3">
+          {renderListManager(`Ações de ${partnerName}`, 'partnerActionOptions')}
+          {renderListManager(`Ações de ${myName}`, 'myActionOptions')}
+          {renderListManager('Motivos de Sem Intimidade', 'intimacyReasons')}
+          {renderListManager('Motivos de Discussão', 'conflictReasons')}
+        </div>
+      </section>
+
+      <section>
+        <h3 className="px-1 pb-2 text-sm font-semibold uppercase tracking-wider text-text-muted/70">Preferências</h3>
+        <div className="bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-black/5 dark:border-white/5 divide-y divide-black/5 dark:divide-white/5 overflow-hidden">
+          {[
+            { id: 'dailyReminder', icon: 'notifications', label: 'Lembrete Diário', color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-100 dark:bg-blue-900/30' },
+            { id: 'coachTips', icon: 'tips_and_updates', label: 'Dicas do Mentor', color: 'text-primary dark:text-pink-400', bg: 'bg-pink-100 dark:bg-pink-900/30' },
+            { id: 'biometrics', icon: 'fingerprint', label: 'Bloqueio com Biometria', color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-900/30' }
+          ].map((item) => {
+            const prefKey = item.id as keyof UserPreferences;
+            return (
+              <div
+                key={item.id}
+                className="flex items-center justify-between p-4 active:bg-black/5 dark:active:bg-white/5 cursor-pointer"
+                onClick={() => handlePreferenceToggle(prefKey)}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`flex h-8 w-8 items-center justify-center rounded-full ${item.bg} ${item.color}`}>
+                    <span className="material-symbols-rounded !text-[18px]">{item.icon}</span>
+                  </div>
+                  <span className="font-medium text-sm">{item.label}</span>
+                </div>
+                <div className="relative inline-block w-12 align-middle select-none">
+                  <input
+                    type="checkbox"
+                    checked={!!preferences[prefKey]}
+                    readOnly
+                    className="peer sr-only"
+                  />
+                  <div className="w-12 h-6 bg-gray-200 dark:bg-gray-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      <div className="pt-2 pb-8 flex flex-col items-center gap-4">
+        <button
+          onClick={logout}
+          className="w-full rounded-xl bg-card-light dark:bg-card-dark border border-primary/20 p-3 text-primary font-bold text-sm shadow-sm active:scale-[0.98] transition-all hover:bg-primary/5 flex items-center justify-center gap-2"
+        >
+          <span className="material-symbols-rounded">logout</span>
+          Sair da Conta
+        </button>
+        <p className="text-xs text-text-muted/60 dark:text-text-muted/40 font-medium">Love Planner v2.3.0</p>
+      </div>
+    </main>
     </div >
   );
 };

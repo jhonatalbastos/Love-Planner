@@ -50,8 +50,6 @@ export interface UserPreferences {
   intimacyReasons: string[];
   conflictReasons: string[];
   aiConfig: {
-    provider: 'gemini' | 'groq';
-    geminiKey: string;
     groqKey: string;
   };
 }
