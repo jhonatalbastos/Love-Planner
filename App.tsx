@@ -1,27 +1,32 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { BottomNav } from './components/BottomNav';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AppProvider, useApp } from './contexts/AppContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Screen } from './types';
-import { Login } from './pages/Login';
-import { DailyLog } from './pages/DailyLog';
-import { Dashboard } from './pages/Dashboard';
-import { Goals } from './pages/Goals';
-import { Agreements } from './pages/Agreements';
-import { Settings } from './pages/Settings';
-import { TimeCapsule } from './pages/TimeCapsule';
-import { SpecialDates } from './pages/SpecialDates';
-import { Journal } from './pages/Journal';
-import { Milestones } from './pages/Milestones';
-import { Export } from './pages/Export';
-import { AICoach } from './pages/AICoach';
-import { MonthlyReview } from './pages/MonthlyReview';
-import { Meditation } from './pages/Meditation';
-import { Gallery } from './pages/Gallery';
-import { Quiz } from './pages/Quiz';
-import { VisionBoard } from './pages/VisionBoard';
-import { Roulette } from './pages/Roulette';
+import { Loading } from './components/ui/Loading';
+import { Login } from './pages/Login'; // Keep Login eager for fast TTFB for unauth users, or lazy it too? Better eager for LCP.
+
+// Lazy Imports for Main Pages
+const Dashboard = lazy(() => import('./pages/Dashboard').then(module => ({ default: module.Dashboard })));
+const DailyLog = lazy(() => import('./pages/DailyLog').then(module => ({ default: module.DailyLog })));
+const Goals = lazy(() => import('./pages/Goals').then(module => ({ default: module.Goals })));
+const Agreements = lazy(() => import('./pages/Agreements').then(module => ({ default: module.Agreements })));
+const Settings = lazy(() => import('./pages/Settings').then(module => ({ default: module.Settings })));
+
+// Lazy Imports for Feature Pages
+const TimeCapsule = lazy(() => import('./pages/TimeCapsule').then(module => ({ default: module.TimeCapsule })));
+const SpecialDates = lazy(() => import('./pages/SpecialDates').then(module => ({ default: module.SpecialDates })));
+const Journal = lazy(() => import('./pages/Journal').then(module => ({ default: module.Journal })));
+const Milestones = lazy(() => import('./pages/Milestones').then(module => ({ default: module.Milestones })));
+const Export = lazy(() => import('./pages/Export').then(module => ({ default: module.Export })));
+const AICoach = lazy(() => import('./pages/AICoach').then(module => ({ default: module.AICoach })));
+const MonthlyReview = lazy(() => import('./pages/MonthlyReview').then(module => ({ default: module.MonthlyReview })));
+const Meditation = lazy(() => import('./pages/Meditation').then(module => ({ default: module.Meditation })));
+const Gallery = lazy(() => import('./pages/Gallery').then(module => ({ default: module.Gallery })));
+const Quiz = lazy(() => import('./pages/Quiz').then(module => ({ default: module.Quiz })));
+const VisionBoard = lazy(() => import('./pages/VisionBoard').then(module => ({ default: module.VisionBoard })));
+const Roulette = lazy(() => import('./pages/Roulette').then(module => ({ default: module.Roulette })));
 
 // Fake Biometric Lock Screen Component
 const LockScreen: React.FC<{ onUnlock: () => void }> = ({ onUnlock }) => {
@@ -51,14 +56,7 @@ const MainApp: React.FC = () => {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background-light dark:bg-background-dark">
-        <div className="flex flex-col items-center gap-4">
-          <span className="material-symbols-rounded text-6xl text-primary animate-pulse">favorite</span>
-          <p className="text-text-muted font-bold animate-pulse">Carregando Amor...</p>
-        </div>
-      </div>
-    );
+    return <Loading fullScreen message="Carregando Amor..." />;
   }
 
   if (!user) {
@@ -135,7 +133,9 @@ const AuthenticatedLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen">
-      {renderScreen()}
+      <Suspense fallback={<Loading fullScreen message="Carregando..." />}>
+        {renderScreen()}
+      </Suspense>
       {!shouldHideBottomNav && (
         <BottomNav currentScreen={currentScreen} onNavigate={setCurrentScreen} />
       )}
