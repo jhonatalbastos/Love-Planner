@@ -15,7 +15,8 @@ export enum Screen {
   Meditation = 'Meditation',
   Gallery = 'Gallery',
   Quiz = 'Quiz',
-  VisionBoard = 'VisionBoard'
+  VisionBoard = 'VisionBoard',
+  Roulette = 'Roulette'
 }
 
 export interface NavItem {
@@ -185,6 +186,14 @@ export interface Vision {
   created_by: string;
   image_url: string;
   caption?: string;
+  created_at: string;
+}
+
+export interface DecisionList {
+  id: string;
+  created_by: string;
+  title: string;
+  items: string[];
   created_at: string;
 }
 

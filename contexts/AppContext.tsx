@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { LogEntry, Goal, Agreement, UserStats, SpecialDate, UserProfile, UserPreferences, Memory, User, Screen, JournalQuestion, JournalAnswer, Quiz, Vision } from '../types';
+import { LogEntry, Goal, Agreement, UserStats, SpecialDate, UserProfile, UserPreferences, Memory, User, Screen, JournalQuestion, JournalAnswer, Quiz, Vision, DecisionList } from '../types';
 import { supabase } from '../lib/supabase';
 
 interface AppContextType {
@@ -41,6 +41,10 @@ interface AppContextType {
   visions: Vision[];
   addVision: (imageUrl: string, caption?: string) => Promise<void>;
   deleteVision: (id: string) => Promise<void>;
+  decisionLists: DecisionList[];
+  addDecisionList: (title: string, items: string[]) => Promise<void>;
+  updateDecisionList: (id: string, items: string[]) => Promise<void>;
+  deleteDecisionList: (id: string) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -102,6 +106,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode, currentUser: Use
   const [journalAnswers, setJournalAnswers] = useState<JournalAnswer[]>([]);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [visions, setVisions] = useState<Vision[]>([]);
+  const [decisionLists, setDecisionLists] = useState<DecisionList[]>([]);
 
   // --- Load Data from Supabase ---
   useEffect(() => {
@@ -253,6 +258,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode, currentUser: Use
       }
       const { data: vData } = await visionQuery.order('created_at', { ascending: false });
       if (vData) setVisions(vData);
+
+      // 11. Fetch Decision Lists (Shared)
+      let dlQuery = supabase.from('decision_lists').select('*');
+      if (profile && profile.partner_id) {
+        dlQuery = dlQuery.or(`created_by.eq.${currentUser.id},created_by.eq.${profile.partner_id}`);
+      } else {
+        dlQuery = dlQuery.eq('created_by', currentUser.id);
+      }
+      const { data: dlData } = await dlQuery.order('created_at', { ascending: false });
+      if (dlData) setDecisionLists(dlData);
     };
 
     fetchData();
@@ -271,6 +286,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode, currentUser: Use
       .on('postgres_changes', { event: '*', schema: 'public', table: 'journal_answers' }, () => fetchData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'quizzes' }, () => fetchData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'visions' }, () => fetchData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'decision_lists' }, () => fetchData())
       .subscribe();
 
     // ... subscribe to others if needed
@@ -690,6 +706,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode, currentUser: Use
     await supabase.from('visions').delete().eq('id', id);
   };
 
+  // --- Decision Roulette Logic ---
+  const addDecisionList = async (title: string, items: string[]) => {
+    const id = crypto.randomUUID();
+    const newList: DecisionList = {
+      id,
+      created_by: currentUser.id,
+      title,
+      items,
+      created_at: new Date().toISOString()
+    };
+    setDecisionLists(prev => [newList, ...prev]);
+    await supabase.from('decision_lists').insert({ id, created_by: currentUser.id, title, items });
+  };
+
+  const updateDecisionList = async (id: string, items: string[]) => {
+    setDecisionLists(prev => prev.map(l => l.id === id ? { ...l, items } : l));
+    await supabase.from('decision_lists').update({ items }).eq('id', id);
+  };
+
+  const deleteDecisionList = async (id: string) => {
+    setDecisionLists(prev => prev.filter(l => l.id !== id));
+    await supabase.from('decision_lists').delete().eq('id', id);
+  };
+
   return (
     <AppContext.Provider value={{
       userProfile, preferences, stats, logs, goals, agreements, specialDates, memories, journalQuestions, journalAnswers,
@@ -698,7 +738,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode, currentUser: Use
       toggleAgreement, skipAgreement, addAgreement, updateAgreement, deleteAgreement,
       addSpecialDate, updateSpecialDate, deleteSpecialDate, addMemory, connectPartner,
       addQuestion, saveAnswer, quizzes, createQuiz, answerQuiz,
-      visions, addVision, deleteVision
+      visions, addVision, deleteVision,
+      decisionLists, addDecisionList, updateDecisionList, deleteDecisionList
     }}>
       {children}
     </AppContext.Provider>

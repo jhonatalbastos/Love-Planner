@@ -390,9 +390,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
 
         {/* Quick Links - UPDATED TO GRID FOR VISIBILITY */}
         <section className="grid grid-cols-3 gap-2">
-          <button onClick={() => onNavigate(Screen.Journal)} className="flex flex-col items-center justify-center gap-1 p-2 h-20 bg-white dark:bg-card-dark rounded-xl border border-gray-100 dark:border-white/5 shadow-sm active:scale-95 transition-all hover:border-primary/20">
-            <span className="material-symbols-rounded text-blue-500 text-[24px]">edit_note</span>
-            <span className="text-xs font-bold text-center">Diário</span>
+          <button onClick={() => onNavigate(Screen.Roulette)} className="flex flex-col items-center justify-center gap-1 p-2 h-20 bg-white dark:bg-card-dark rounded-xl border border-gray-100 dark:border-white/5 shadow-sm active:scale-95 transition-all hover:border-primary/20">
+            <span className="material-symbols-rounded text-green-500 text-[24px]">casino</span>
+            <span className="text-xs font-bold text-center">Roleta</span>
           </button>
           <button onClick={() => onNavigate(Screen.TimeCapsule)} className="flex flex-col items-center justify-center gap-1 p-2 h-20 bg-white dark:bg-card-dark rounded-xl border border-gray-100 dark:border-white/5 shadow-sm active:scale-95 transition-all hover:border-primary/20">
             <span className="material-symbols-rounded text-purple-500 text-[24px]">hourglass_top</span>
