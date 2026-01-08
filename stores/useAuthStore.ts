@@ -69,9 +69,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         if (user) {
             // Load preferences from local storage on login
             const saved = localStorage.getItem(`loveplanner_${user.id}_prefs`);
+            let loadedPrefs = INITIAL_PREFS;
+
             if (saved) {
-                set({ preferences: { ...INITIAL_PREFS, ...JSON.parse(saved) } });
+                loadedPrefs = { ...INITIAL_PREFS, ...JSON.parse(saved) };
             }
+
+            // Restore global Groq Key if missing in user prefs
+            if (!loadedPrefs.aiConfig.groqKey) {
+                const globalKey = localStorage.getItem('loveplanner_global_groq_key');
+                if (globalKey) {
+                    console.log("Restoring Groq Key from global storage");
+                    loadedPrefs.aiConfig.groqKey = globalKey;
+                }
+            }
+
+            set({ preferences: loadedPrefs });
         }
     },
 
@@ -174,6 +187,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     updatePreferences: (newPrefs) => {
         set(state => {
             const updated = { ...state.preferences, ...newPrefs };
+
+            // Persist Groq Key Globally if it's being updated
+            if (newPrefs.aiConfig?.groqKey !== undefined) {
+                if (newPrefs.aiConfig.groqKey) {
+                    localStorage.setItem('loveplanner_global_groq_key', newPrefs.aiConfig.groqKey);
+                } else {
+                    localStorage.removeItem('loveplanner_global_groq_key');
+                }
+            }
+
             const user = state.user;
             if (user) localStorage.setItem(`loveplanner_${user.id}_prefs`, JSON.stringify(updated));
             return { preferences: updated };

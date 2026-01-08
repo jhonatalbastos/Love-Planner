@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabase';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
+import { AIKeyInput } from '../components/ui/AIKeyInput';
 
 const AVAILABLE_ICONS = [
   'favorite', 'volunteer_activism', 'cleaning_services', 'hearing', 'warning',
@@ -534,14 +535,11 @@ export const Settings: React.FC = () => {
             </div>
 
             <div className="animate-[fadeIn_0.2s_ease-out]">
-              <Input
-                type="password"
-                label="Chave API da Groq"
-                placeholder="Cole sua chave Groq aqui..."
+              <AIKeyInput
                 value={preferences.aiConfig?.groqKey || ''}
-                onChange={e => updatePreferences({ aiConfig: { ...preferences.aiConfig, groqKey: e.target.value } })}
-                className="font-mono"
+                onChange={(val) => updatePreferences({ aiConfig: { ...preferences.aiConfig, groqKey: val } })}
               />
+
               <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" className="text-[10px] text-orange-500 hover:underline mt-1 flex items-center gap-1">
                 <span className="material-symbols-rounded text-[12px]">open_in_new</span>
                 Obter chave gratuita na Groq Cloud
