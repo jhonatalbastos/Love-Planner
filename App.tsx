@@ -19,6 +19,7 @@ import { AICoach } from './pages/AICoach';
 import { MonthlyReview } from './pages/MonthlyReview';
 import { Meditation } from './pages/Meditation';
 import { Gallery } from './pages/Gallery';
+import { Quiz } from './pages/Quiz';
 
 // Fake Biometric Lock Screen Component
 const LockScreen: React.FC<{ onUnlock: () => void }> = ({ onUnlock }) => {
@@ -102,6 +103,7 @@ const AuthenticatedLayout: React.FC = () => {
       case Screen.MonthlyReview: return <MonthlyReview onBack={() => setCurrentScreen(Screen.Dashboard)} />;
       case Screen.Meditation: return <Meditation onNavigate={setCurrentScreen} />;
       case Screen.Gallery: return <Gallery onNavigate={setCurrentScreen} />;
+      case Screen.Quiz: return <Quiz onNavigate={setCurrentScreen} />;
       default: return <Dashboard onNavigate={setCurrentScreen} />;
     }
   };
@@ -121,7 +123,8 @@ const AuthenticatedLayout: React.FC = () => {
     Screen.AICoach,
     Screen.MonthlyReview,
     Screen.Meditation,
-    Screen.Gallery
+    Screen.Gallery,
+    Screen.Quiz
   ].includes(currentScreen);
 
   return (

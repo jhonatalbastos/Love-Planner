@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { LogEntry, Goal, Agreement, UserStats, SpecialDate, UserProfile, UserPreferences, Memory, User, Screen, JournalQuestion, JournalAnswer } from '../types';
+import { LogEntry, Goal, Agreement, UserStats, SpecialDate, UserProfile, UserPreferences, Memory, User, Screen, JournalQuestion, JournalAnswer, Quiz } from '../types';
 import { supabase } from '../lib/supabase';
 
 interface AppContextType {
@@ -35,6 +35,9 @@ interface AppContextType {
   deleteSpecialDate: (id: string) => void;
   addMemory: (memory: Memory) => void;
   connectPartner: (code: string) => Promise<boolean>;
+  quizzes: Quiz[];
+  createQuiz: (question: string, options: string[], correctAnswer: string) => Promise<void>;
+  answerQuiz: (quizId: string, answer: string) => Promise<boolean>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -94,6 +97,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode, currentUser: Use
   const [memories, setMemories] = useState<Memory[]>([]);
   const [journalQuestions, setJournalQuestions] = useState<JournalQuestion[]>([]);
   const [journalAnswers, setJournalAnswers] = useState<JournalAnswer[]>([]);
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
 
   // --- Load Data from Supabase ---
   useEffect(() => {
@@ -225,6 +229,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode, currentUser: Use
       if (aData) {
         setJournalAnswers(aData);
       }
+
+      // 9. Fetch Quizzes (Created by me or my partner)
+      let quizQuery = supabase.from('quizzes').select('*');
+      if (profile && profile.partner_id) {
+        quizQuery = quizQuery.or(`created_by.eq.${currentUser.id},created_by.eq.${profile.partner_id}`);
+      } else {
+        quizQuery = quizQuery.eq('created_by', currentUser.id);
+      }
+      const { data: qzData } = await quizQuery.order('created_at', { ascending: false });
+      if (qzData) setQuizzes(qzData);
     };
 
     fetchData();
@@ -241,6 +255,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode, currentUser: Use
     const journalSub = supabase.channel('journal_channel')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'journal_questions' }, () => fetchData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'journal_answers' }, () => fetchData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'quizzes' }, () => fetchData())
       .subscribe();
 
     // ... subscribe to others if needed
@@ -586,6 +601,54 @@ export const AppProvider: React.FC<{ children: React.ReactNode, currentUser: Use
     });
   };
 
+  // --- Quiz Logic ---
+  const createQuiz = async (question: string, options: string[], correctAnswer: string) => {
+    const id = crypto.randomUUID();
+    const newQuiz: Quiz = {
+      id,
+      created_by: currentUser.id,
+      question,
+      options,
+      correct_answer: correctAnswer,
+      status: 'pending',
+      created_at: new Date().toISOString()
+    };
+
+    setQuizzes(prev => [...prev, newQuiz]);
+
+    await supabase.from('quizzes').insert({
+      id,
+      created_by: currentUser.id,
+      question,
+      options,
+      correct_answer: correctAnswer,
+      status: 'pending'
+    });
+  };
+
+  const answerQuiz = async (quizId: string, answer: string) => {
+    const quiz = quizzes.find(q => q.id === quizId);
+    if (!quiz) return false;
+
+    const isCorrect = answer === quiz.correct_answer;
+
+    // Update local state
+    setQuizzes(prev => prev.map(q => q.id === quizId ? { ...q, partner_answer: answer, status: 'completed' } : q));
+
+    // Update DB
+    await supabase.from('quizzes').update({
+      partner_answer: answer,
+      status: 'completed'
+    }).eq('id', quizId);
+
+    // Grant XP if correct
+    if (isCorrect) {
+      setStats(prev => ({ ...prev, xp: prev.xp + 50 }));
+    }
+
+    return isCorrect;
+  };
+
   return (
     <AppContext.Provider value={{
       userProfile, preferences, stats, logs, goals, agreements, specialDates, memories, journalQuestions, journalAnswers,
@@ -593,7 +656,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode, currentUser: Use
       toggleGoal, incrementGoal, addGoal, updateGoal, deleteGoal,
       toggleAgreement, skipAgreement, addAgreement, updateAgreement, deleteAgreement,
       addSpecialDate, updateSpecialDate, deleteSpecialDate, addMemory, connectPartner,
-      addQuestion, saveAnswer
+      addQuestion, saveAnswer, quizzes, createQuiz, answerQuiz
     }}>
       {children}
     </AppContext.Provider>

@@ -13,7 +13,8 @@ export enum Screen {
   AICoach = 'AICoach',
   MonthlyReview = 'MonthlyReview',
   Meditation = 'Meditation',
-  Gallery = 'Gallery'
+  Gallery = 'Gallery',
+  Quiz = 'Quiz'
 }
 
 export interface NavItem {
@@ -175,6 +176,17 @@ export interface JournalAnswer {
   question_id: string;
   user_id: string;
   text: string;
+  created_at: string;
+}
+
+export interface Quiz {
+  id: string;
+  created_by: string;
+  question: string;
+  options?: string[]; // Array of strings e.g. ["Blue", "Red"]
+  correct_answer: string;
+  partner_answer?: string;
+  status: 'pending' | 'completed';
   created_at: string;
 }
 
