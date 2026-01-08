@@ -16,12 +16,10 @@ export const VisionBoard: React.FC<VisionBoardProps> = ({ onNavigate }) => {
     const deleteVision = useInteractiveStore(state => state.deleteVision);
     const user = useAuthStore(state => state.user);
 
-    const [showAddModal, setShowAddModal] = useState(false);
-    const [newImageUrl, setNewImageUrl] = useState('');
-    const [newCaption, setNewCaption] = useState('');
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
 
     const handleAdd = async () => {
-        if (!newImageUrl.trim()) return alert("Cole o link da imagem!");
+        if (!newImageUrl.trim()) return alert("Adicione uma imagem!");
         if (user) {
             await addVision({
                 id: crypto.randomUUID(),
@@ -36,12 +34,20 @@ export const VisionBoard: React.FC<VisionBoardProps> = ({ onNavigate }) => {
         setNewCaption('');
     };
 
-    const handleUpload = () => {
-        // Simulate upload: In real app, upload to storage and get URL.
-        // Here we can ask user to paste a link (pinterest/unsplash)
-        // OR use a file reader to base64 (limited size, but works for prototype)
-        alert("Por enquanto, cole o link de uma imagem da internet! (Ex: Pinterest)");
-    }
+    const handleUploadClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setNewImageUrl(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
     const handleDelete = async (id: string) => {
         if (confirm("Remover do mural?")) {
@@ -107,15 +113,60 @@ export const VisionBoard: React.FC<VisionBoardProps> = ({ onNavigate }) => {
                 }
             >
                 <div className="space-y-4">
-                    <Input
-                        label="Link da Imagem"
-                        value={newImageUrl}
-                        onChange={e => setNewImageUrl(e.target.value)}
-                        placeholder="Cole o URL..."
-                    />
-                    <p className="text-xs text-text-muted text-center cursor-pointer hover:underline" onClick={handleUpload}>
-                        Dica: Copie o endereço da imagem do Google/Pinterest.
-                    </p>
+                    {/* Image Preview Area */}
+                    <div className="flex flex-col gap-2">
+                        <label className="text-xs font-bold text-text-muted uppercase">Imagem</label>
+
+                        {newImageUrl ? (
+                            <div className="relative w-full h-40 rounded-xl overflow-hidden border border-border-light dark:border-border-dark group">
+                                <img src={newImageUrl} alt="Preview" className="w-full h-full object-cover" />
+                                <button
+                                    onClick={() => setNewImageUrl('')}
+                                    className="absolute top-2 right-2 p-1 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                    <span className="material-symbols-rounded text-sm">close</span>
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="secondary"
+                                    onClick={handleUploadClick}
+                                    className="flex-1 h-32 flex flex-col gap-2 border-2 border-dashed border-gray-300 dark:border-gray-700 hover:border-primary/50 hover:bg-primary/5"
+                                >
+                                    <span className="material-symbols-rounded text-3xl text-primary">add_photo_alternate</span>
+                                    <span className="text-xs">Carregar do Celular</span>
+                                </Button>
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    className="hidden"
+                                    accept="image/*"
+                                    onChange={handleFileChange}
+                                />
+                            </div>
+                        )}
+
+                        {!newImageUrl && (
+                            <div className="relative">
+                                <div className="absolute inset-0 flex items-center">
+                                    <div className="w-full border-t border-gray-200 dark:border-gray-700"></div>
+                                </div>
+                                <div className="relative flex justify-center text-xs uppercase">
+                                    <span className="bg-white dark:bg-card-dark px-2 text-text-muted">Ou cole o link</span>
+                                </div>
+                            </div>
+                        )}
+
+                        {!newImageUrl && (
+                            <Input
+                                value={newImageUrl}
+                                onChange={e => setNewImageUrl(e.target.value)}
+                                placeholder="https://..."
+                                className="text-xs"
+                            />
+                        )}
+                    </div>
 
                     <Input
                         label="Legenda"

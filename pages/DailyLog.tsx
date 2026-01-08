@@ -346,13 +346,26 @@ export const DailyLog: React.FC<DailyLogProps> = ({ onSaved }) => {
           >
             <span className="material-symbols-rounded">chevron_left</span>
           </button>
-          <div className="text-center">
-            <p className="text-xs font-bold text-text-muted uppercase tracking-widest mb-0.5 capitalize">{monthName} {currentDate.getFullYear()}</p>
-            <div className="flex items-center gap-1 justify-center">
-              <span className="material-symbols-rounded text-[18px]">calendar_month</span>
+          <label className="text-center relative cursor-pointer group">
+            <input
+              type="date"
+              className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-20"
+              value={toLocalDateStr(currentDate)}
+              onChange={(e) => {
+                const parts = e.target.value.split('-');
+                if (parts.length === 3) {
+                  const newDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                  setCurrentDate(newDate);
+                }
+              }}
+            />
+            <p className="text-xs font-bold text-text-muted uppercase tracking-widest mb-0.5 capitalize group-hover:text-primary transition-colors">{monthName} {currentDate.getFullYear()}</p>
+            <div className="flex items-center gap-1 justify-center group-hover:bg-black/5 dark:group-hover:bg-white/5 rounded-lg px-2 py-0.5 transition-colors">
+              <span className="material-symbols-rounded text-[18px] text-primary">calendar_month</span>
               <p className="text-lg font-bold capitalize">{isToday ? 'Hoje' : new Intl.DateTimeFormat('pt-BR', { weekday: 'short' }).format(currentDate)}, {dayNumber} {monthShort}</p>
+              <span className="material-symbols-rounded text-[16px] text-text-muted opacity-50 group-hover:opacity-100">expand_more</span>
             </div>
-          </div>
+          </label>
           <button
             onClick={() => changeDate(1)}
             disabled={isToday}
