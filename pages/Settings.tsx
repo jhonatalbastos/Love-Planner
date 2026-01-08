@@ -632,7 +632,7 @@ export const Settings: React.FC = () => {
                 </div>
               </div>
 
-              <div className="relative inline-block w-12 align-middle select-none">
+              <label className="relative inline-block w-12 align-middle select-none cursor-pointer">
                 <input
                   type="checkbox"
                   checked={!!userProfile.cycleData?.enabled}
@@ -650,7 +650,7 @@ export const Settings: React.FC = () => {
                   className="peer sr-only"
                 />
                 <div className="w-12 h-6 bg-gray-200 dark:bg-gray-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-500"></div>
-              </div>
+              </label>
             </div>
 
             {userProfile.cycleData?.enabled && (
