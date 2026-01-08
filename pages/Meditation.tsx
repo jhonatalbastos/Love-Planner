@@ -6,7 +6,7 @@ interface MeditationProps {
 }
 
 const MEDITATIONS = [
-    { id: 1, title: 'Respiração Conectada', duration: 5, color: 'bg-indigo-500', icon: 'lungs' },
+    { id: 1, title: 'Respiração Conectada', duration: 5, color: 'bg-indigo-500', icon: 'air' },
     { id: 2, title: 'Gratidão a Dois', duration: 10, color: 'bg-rose-500', icon: 'favorite' },
     { id: 3, title: 'Relaxamento Profundo', duration: 15, color: 'bg-teal-500', icon: 'spa' },
 ];
