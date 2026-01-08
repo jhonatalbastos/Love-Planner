@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useApp } from '../contexts/AppContext';
 import { Agreement } from '../types';
+import { SuggestionList } from '../components/ui/SuggestionList';
+import { AGREEMENT_SUGGESTIONS } from '../data/suggestions';
 
 export const Agreements: React.FC = () => {
   const { agreements, toggleAgreement, addAgreement, updateAgreement, deleteAgreement, userProfile } = useApp();
@@ -370,6 +372,19 @@ export const Agreements: React.FC = () => {
               <button onClick={() => setShowAddModal(false)} className="text-gray-400 hover:text-gray-600"><span className="material-symbols-rounded">close</span></button>
             </div>
 
+            {!editingId && (
+              <SuggestionList
+                type="agreement"
+                staticSuggestions={AGREEMENT_SUGGESTIONS}
+                onSelect={(item) => {
+                  setNewTitle(item.title);
+                  setNewDetails(item.details);
+                  setNewFrequency(item.timeInfo === 'Diário' || item.timeInfo === 'Semanal' || item.timeInfo === 'Mensal' ? item.timeInfo : 'Diário');
+                  setNewResponsibility('both');
+                }}
+              />
+            )}
+
             <div className="space-y-4 mb-6">
               <div>
                 <input
@@ -416,8 +431,8 @@ export const Agreements: React.FC = () => {
                       key={opt.id}
                       onClick={() => setNewResponsibility(opt.id as any)}
                       className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-md text-xs font-bold transition-all ${newResponsibility === opt.id
-                          ? 'bg-white dark:bg-card-dark shadow-sm text-primary'
-                          : 'text-gray-400 hover:text-gray-600'
+                        ? 'bg-white dark:bg-card-dark shadow-sm text-primary'
+                        : 'text-gray-400 hover:text-gray-600'
                         }`}
                     >
                       <span className="material-symbols-rounded text-[14px]">{opt.icon}</span>

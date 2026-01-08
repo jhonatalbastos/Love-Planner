@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useApp } from '../contexts/AppContext';
 import { Goal } from '../types';
+import { SuggestionList } from '../components/ui/SuggestionList';
+import { GOAL_SUGGESTIONS } from '../data/suggestions';
 
 const ICON_SUGGESTIONS = [
   'favorite', 'event_available', 'phonelink_off', 'fitness_center',
@@ -226,8 +228,8 @@ export const Goals: React.FC = () => {
               key={i}
               onClick={() => setSelectedDayIndex(i)}
               className={`snap-start flex flex-col items-center gap-1 min-w-[3.5rem] p-2 rounded-xl transition-all ${i === selectedDayIndex
-                  ? 'bg-primary text-white shadow-lg shadow-primary/30 scale-105'
-                  : 'hover:bg-black/5 dark:hover:bg-white/5 opacity-60 hover:opacity-100'
+                ? 'bg-primary text-white shadow-lg shadow-primary/30 scale-105'
+                : 'hover:bg-black/5 dark:hover:bg-white/5 opacity-60 hover:opacity-100'
                 }`}
             >
               <span className={`text-xs font-medium uppercase ${i === selectedDayIndex ? 'opacity-90' : 'text-text-muted'}`}>{day.w}</span>
@@ -360,6 +362,19 @@ export const Goals: React.FC = () => {
           <div className="bg-white dark:bg-card-dark rounded-2xl p-6 w-full max-w-sm shadow-xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto no-scrollbar">
             <h3 className="text-lg font-bold">{editingId ? 'Editar Meta' : 'Nova Meta Semanal'}</h3>
 
+            {!editingId && (
+              <SuggestionList
+                type="goal"
+                staticSuggestions={GOAL_SUGGESTIONS}
+                onSelect={(item) => {
+                  setFormTitle(item.title);
+                  setFormTarget(item.target);
+                  setFormIcon(item.icon);
+                  setFormDesc(`Meta sugerida: ${item.type === 'bonding' ? 'Conexão' : item.type}`);
+                }}
+              />
+            )}
+
             <div>
               <label className="text-xs font-bold text-text-muted uppercase mb-1 block">Nome da Meta</label>
               <input
@@ -424,8 +439,8 @@ export const Goals: React.FC = () => {
                     key={icon}
                     onClick={() => setFormIcon(icon)}
                     className={`aspect-square rounded-lg flex items-center justify-center transition-all ${formIcon === icon
-                        ? 'bg-primary text-white shadow-md scale-105'
-                        : 'bg-gray-100 dark:bg-white/5 text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10'
+                      ? 'bg-primary text-white shadow-md scale-105'
+                      : 'bg-gray-100 dark:bg-white/5 text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10'
                       }`}
                   >
                     <span className="material-symbols-rounded text-[20px]">{icon}</span>
