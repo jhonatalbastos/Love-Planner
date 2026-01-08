@@ -17,26 +17,27 @@ import { Milestones } from './pages/Milestones';
 import { Export } from './pages/Export';
 import { AICoach } from './pages/AICoach';
 import { MonthlyReview } from './pages/MonthlyReview';
+import { Meditation } from './pages/Meditation';
 
 // Fake Biometric Lock Screen Component
 const LockScreen: React.FC<{ onUnlock: () => void }> = ({ onUnlock }) => {
   return (
     <div className="fixed inset-0 z-[100] bg-background-light dark:bg-background-dark flex flex-col items-center justify-center animate-[fadeIn_0.3s_ease-out]">
-        <div className="flex flex-col items-center gap-6">
-            <div className="size-20 bg-primary/10 rounded-full flex items-center justify-center animate-pulse">
-                <span className="material-symbols-rounded text-6xl text-primary">fingerprint</span>
-            </div>
-            <div className="text-center">
-                <h2 className="text-xl font-bold">Love Planner Bloqueado</h2>
-                <p className="text-sm text-text-muted mt-1">Toque para desbloquear com FaceID/Biometria</p>
-            </div>
-            <button 
-                onClick={onUnlock}
-                className="px-8 py-3 bg-primary text-white font-bold rounded-xl shadow-lg active:scale-95 transition-transform"
-            >
-                Desbloquear
-            </button>
+      <div className="flex flex-col items-center gap-6">
+        <div className="size-20 bg-primary/10 rounded-full flex items-center justify-center animate-pulse">
+          <span className="material-symbols-rounded text-6xl text-primary">fingerprint</span>
         </div>
+        <div className="text-center">
+          <h2 className="text-xl font-bold">Love Planner Bloqueado</h2>
+          <p className="text-sm text-text-muted mt-1">Toque para desbloquear com FaceID/Biometria</p>
+        </div>
+        <button
+          onClick={onUnlock}
+          className="px-8 py-3 bg-primary text-white font-bold rounded-xl shadow-lg active:scale-95 transition-transform"
+        >
+          Desbloquear
+        </button>
+      </div>
     </div>
   );
 };
@@ -49,8 +50,8 @@ const MainApp: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background-light dark:bg-background-dark">
         <div className="flex flex-col items-center gap-4">
-           <span className="material-symbols-rounded text-6xl text-primary animate-pulse">favorite</span>
-           <p className="text-text-muted font-bold animate-pulse">Carregando Amor...</p>
+          <span className="material-symbols-rounded text-6xl text-primary animate-pulse">favorite</span>
+          <p className="text-text-muted font-bold animate-pulse">Carregando Amor...</p>
         </div>
       </div>
     );
@@ -76,12 +77,12 @@ const AuthenticatedLayout: React.FC = () => {
   const [hasCheckedLock, setHasCheckedLock] = useState(false);
 
   useEffect(() => {
-     if (!hasCheckedLock) {
-         if (preferences.biometrics) {
-             setIsLocked(true);
-         }
-         setHasCheckedLock(true);
-     }
+    if (!hasCheckedLock) {
+      if (preferences.biometrics) {
+        setIsLocked(true);
+      }
+      setHasCheckedLock(true);
+    }
   }, [preferences.biometrics, hasCheckedLock]);
 
   const renderScreen = () => {
@@ -98,24 +99,26 @@ const AuthenticatedLayout: React.FC = () => {
       case Screen.Export: return <Export onBack={() => setCurrentScreen(Screen.Dashboard)} />;
       case Screen.AICoach: return <AICoach onBack={() => setCurrentScreen(Screen.Dashboard)} />;
       case Screen.MonthlyReview: return <MonthlyReview onBack={() => setCurrentScreen(Screen.Dashboard)} />;
+      case Screen.Meditation: return <Meditation onNavigate={setCurrentScreen} />;
       default: return <Dashboard onNavigate={setCurrentScreen} />;
     }
   };
 
   if (isLocked) {
-      return <LockScreen onUnlock={() => setIsLocked(false)} />;
+    return <LockScreen onUnlock={() => setIsLocked(false)} />;
   }
 
   // Hide bottom nav on full-screen auxiliary pages
   const shouldHideBottomNav = [
     // Screen.DailyLog, // Removed to keep nav visible
-    Screen.TimeCapsule, 
-    Screen.SpecialDates, 
-    Screen.Journal, 
-    Screen.Milestones, 
+    Screen.TimeCapsule,
+    Screen.SpecialDates,
+    Screen.Journal,
+    Screen.Milestones,
     Screen.Export,
     Screen.AICoach,
-    Screen.MonthlyReview
+    Screen.MonthlyReview,
+    Screen.Meditation
   ].includes(currentScreen);
 
   return (

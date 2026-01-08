@@ -11,7 +11,8 @@ export enum Screen {
   Milestones = 'Milestones',
   Export = 'Export',
   AICoach = 'AICoach',
-  MonthlyReview = 'MonthlyReview'
+  MonthlyReview = 'MonthlyReview',
+  Meditation = 'Meditation'
 }
 
 export interface NavItem {
@@ -40,6 +41,8 @@ export interface UserProfile {
   partnerId?: string;
   connectionStatus: 'single' | 'connected';
   cycleData?: CycleData;
+  mood?: 'happy' | 'calm' | 'tired' | 'stressed' | 'excited' | 'sad';
+  energy?: 'low' | 'medium' | 'high';
 }
 
 export interface CycleData {

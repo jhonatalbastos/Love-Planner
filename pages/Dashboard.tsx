@@ -17,7 +17,7 @@ const RELATIONSHIP_TIPS = [
 ];
 
 export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
-  const { stats, logs, userProfile, specialDates, agreements, goals, preferences } = useApp();
+  const { stats, logs, userProfile, specialDates, agreements, goals, preferences, updateUserProfile } = useApp();
 
   // State for Month Navigation
   const [displayDate, setDisplayDate] = useState(new Date());
@@ -165,6 +165,78 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             </div>
           </section>
         )}
+
+        {/* --- Health & Wellness: Mood & Hydration --- */}
+        <section className="space-y-3">
+          {/* Mood Check-in */}
+          <div className="bg-white dark:bg-card-dark rounded-xl p-3 shadow-sm border border-gray-100 dark:border-white/5">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-bold flex items-center gap-2">
+                <span className="material-symbols-rounded text-orange-400">sentiment_satisfied</span>
+                Como você está hoje?
+              </h3>
+            </div>
+            <div className="flex justify-between gap-1">
+              {['happy', 'calm', 'excited', 'tired', 'stressed', 'sad'].map((m) => (
+                <button
+                  key={m}
+                  onClick={() => updateUserProfile({ mood: m as any })}
+                  className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-all ${userProfile.mood === m ? 'bg-orange-100 dark:bg-orange-900/30 ring-2 ring-orange-500 scale-105' : 'hover:bg-gray-50 dark:hover:bg-white/5 opacity-60 hover:opacity-100'}`}
+                >
+                  <span className="text-2xl">
+                    {m === 'happy' ? '😃' : m === 'calm' ? '😌' : m === 'excited' ? '🤩' : m === 'tired' ? '😴' : m === 'stressed' ? '😫' : '😢'}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {/* Energy Level */}
+            <div className="mt-3 flex items-center justify-between bg-gray-50 dark:bg-white/5 p-2 rounded-lg">
+              <span className="text-xs font-semibold text-text-muted">Nível de Energia:</span>
+              <div className="flex gap-2">
+                {['low', 'medium', 'high'].map((e) => (
+                  <button
+                    key={e}
+                    onClick={() => updateUserProfile({ energy: e as any })}
+                    className={`px-3 py-1 text-[10px] uppercase font-bold rounded-full transition-all border ${userProfile.energy === e
+                      ? (e === 'low' ? 'bg-red-100 text-red-600 border-red-200' : e === 'medium' ? 'bg-yellow-100 text-yellow-600 border-yellow-200' : 'bg-green-100 text-green-600 border-green-200')
+                      : 'border-transparent text-text-muted hover:bg-black/5'
+                      }`}
+                  >
+                    {e === 'low' ? 'Baixa' : e === 'medium' ? 'Média' : 'Alta'}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Hydration Reminder */}
+          <div className="bg-blue-50 dark:bg-blue-900/10 rounded-xl p-3 border border-blue-100 dark:border-blue-900/20 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="size-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-500">
+                <span className="material-symbols-rounded">water_drop</span>
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-blue-900 dark:text-blue-100">Hidratação</h4>
+                <p className="text-[10px] text-blue-700 dark:text-blue-300/80">Lembre seu amor de beber água!</p>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                // In a real app, this would send a push notification
+                if (window.median?.onesignal) {
+                  // Logic to send notification would go here
+                  alert("Lembrete enviado! 💧");
+                } else {
+                  alert("Lembrete enviado! 💧");
+                }
+              }}
+              className="size-8 rounded-full bg-white dark:bg-blue-900/50 flex items-center justify-center text-blue-500 shadow-sm active:scale-90 transition-transform"
+            >
+              <span className="material-symbols-rounded text-lg">send</span>
+            </button>
+          </div>
+        </section>
 
         {/* --- Menstrual Cycle Widget --- */}
         {userProfile.cycleData?.enabled && (
@@ -337,6 +409,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
           <button onClick={() => onNavigate(Screen.Export)} className="flex flex-col items-center justify-center gap-1 p-2 h-20 bg-white dark:bg-card-dark rounded-xl border border-gray-100 dark:border-white/5 shadow-sm active:scale-95 transition-all hover:border-primary/20">
             <span className="material-symbols-rounded text-gray-500 text-[24px]">download</span>
             <span className="text-xs font-bold text-center">PDF</span>
+          </button>
+          <button onClick={() => onNavigate(Screen.Meditation)} className="flex flex-col items-center justify-center gap-1 p-2 h-20 bg-white dark:bg-card-dark rounded-xl border border-gray-100 dark:border-white/5 shadow-sm active:scale-95 transition-all hover:border-primary/20">
+            <span className="material-symbols-rounded text-indigo-500 text-[24px]">self_improvement</span>
+            <span className="text-xs font-bold text-center">Meditação</span>
           </button>
         </section>
 

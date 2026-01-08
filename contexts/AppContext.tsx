@@ -168,7 +168,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode, currentUser: Use
           partnerName: partnerName,
           partnerId: profile.partner_id,
           connectionStatus: profile.partner_id ? 'connected' : 'single',
-          cycleData: profile.cycle_data
+          cycleData: profile.cycle_data,
+          mood: profile.mood,
+          energy: profile.energy
         });
       }
 
@@ -315,7 +317,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode, currentUser: Use
       names: newProfile.names,
       start_date: newProfile.startDate,
       photo_url: newProfile.photoUrl,
-      cycle_data: newProfile.cycleData
+      cycle_data: newProfile.cycleData,
+      mood: newProfile.mood,
+      energy: newProfile.energy
     }).eq('id', currentUser.id).select();
 
     if (error) {
