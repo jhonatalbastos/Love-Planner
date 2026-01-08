@@ -570,7 +570,7 @@ export const Settings: React.FC = () => {
                   className="w-full bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-lg py-2.5 pl-10 pr-4 outline-none focus:border-primary text-sm appearance-none cursor-pointer"
                 >
                   <option value={Screen.DailyLog}>Diário</option>
-                  <option value={Screen.Dashboard}>Estatísticas (Dashboard)</option>
+                  <option value={Screen.Dashboard}>Jornada</option>
                   <option value={Screen.Goals}>Metas</option>
                   <option value={Screen.Agreements}>Acordos</option>
                   <option value={Screen.Journal}>Diário do Casal (Perguntas)</option>
