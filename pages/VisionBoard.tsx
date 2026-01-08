@@ -17,6 +17,9 @@ export const VisionBoard: React.FC<VisionBoardProps> = ({ onNavigate }) => {
     const user = useAuthStore(state => state.user);
 
     const fileInputRef = React.useRef<HTMLInputElement>(null);
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [newImageUrl, setNewImageUrl] = useState('');
+    const [newCaption, setNewCaption] = useState('');
 
     const handleAdd = async () => {
         if (!newImageUrl.trim()) return alert("Adicione uma imagem!");

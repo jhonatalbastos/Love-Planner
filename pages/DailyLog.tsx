@@ -743,7 +743,7 @@ export const DailyLog: React.FC<DailyLogProps> = ({ onSaved }) => {
             </label>
             <div
               onClick={() => !isLocked && fileInputRef.current?.click()}
-              className={`relative w-full h-40 rounded-2xl bg-card-light dark:bg-card-dark border-2 border-dashed border-border-light dark:border-border-dark flex items-center justify-center cursor-pointer overflow-hidden transition-all hover:border-primary/50 group ${isLocked ? 'cursor-not-allowed' : ''}`}
+              className={`relative w-full rounded-2xl bg-card-light dark:bg-card-dark border-2 border-dashed border-border-light dark:border-border-dark flex items-center justify-center cursor-pointer overflow-hidden transition-all hover:border-primary/50 group ${isLocked ? 'cursor-not-allowed' : ''} ${photo ? 'h-auto min-h-40' : 'h-40'}`}
             >
               <input
                 type="file"
@@ -754,7 +754,7 @@ export const DailyLog: React.FC<DailyLogProps> = ({ onSaved }) => {
                 disabled={isLocked}
               />
               {photo ? (
-                <img src={photo} alt="Daily memory" className="w-full h-full object-cover" />
+                <img src={photo} alt="Daily memory" className="w-full h-auto max-h-[600px] object-contain" />
               ) : (
                 <div className="flex flex-col items-center gap-2 text-text-muted group-hover:text-primary transition-colors">
                   <span className="material-symbols-rounded text-3xl">add_a_photo</span>
