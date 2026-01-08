@@ -1,6 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useApp } from '../contexts/AppContext';
+import { useAuthStore } from '../stores/useAuthStore';
+import { useContentStore } from '../stores/useContentStore';
 import { sendNotification } from '../lib/notifications';
+import { Card } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
 
 
 interface DailyLogProps {
@@ -16,7 +19,20 @@ const LOVE_LANGUAGES = [
 ];
 
 export const DailyLog: React.FC<DailyLogProps> = ({ onSaved }) => {
-  const { addLog, preferences, logs, toggleLogLock, userProfile, agreements, toggleAgreement, goals, toggleGoal, incrementGoal } = useApp();
+  const user = useAuthStore(state => state.user);
+  const userProfile = useAuthStore(state => state.userProfile);
+  const preferences = useAuthStore(state => state.preferences);
+
+  const logs = useContentStore(state => state.logs);
+  const addLog = useContentStore(state => state.addLog);
+  const toggleLogLock = useContentStore(state => state.toggleLogLock);
+
+  const agreements = useContentStore(state => state.agreements);
+  const toggleAgreement = useContentStore(state => state.toggleAgreement);
+
+  const goals = useContentStore(state => state.goals);
+  const toggleGoal = useContentStore(state => state.toggleGoal);
+  const incrementGoal = useContentStore(state => state.incrementGoal);
   const [currentDate, setCurrentDate] = useState(new Date());
 
   // State from Log
@@ -150,21 +166,23 @@ export const DailyLog: React.FC<DailyLogProps> = ({ onSaved }) => {
     // Debounce save operation to avoid excessive context updates
     const timer = setTimeout(() => {
       setIsSaving(true);
-      addLog({
-        date: currentDate.toISOString(),
-        rating,
-        partnerActions: selectedPartnerActions,
-        myActions: selectedMyActions,
-        partnerLoveLanguages,
-        myLoveLanguages,
-        conflict: hasConflict === true,
-        discussionReason: hasConflict === true ? discussionReason : undefined,
-        intimacy: hasIntimacy === true,
-        noIntimacyReason: hasIntimacy === false ? noIntimacyReason : undefined,
-        summary,
-        gratitude,
-        photo
-      });
+      if (user) {
+        addLog({
+          date: currentDate.toISOString(),
+          rating,
+          partnerActions: selectedPartnerActions,
+          myActions: selectedMyActions,
+          partnerLoveLanguages,
+          myLoveLanguages,
+          conflict: hasConflict === true,
+          discussionReason: hasConflict === true ? discussionReason : undefined,
+          intimacy: hasIntimacy === true,
+          noIntimacyReason: hasIntimacy === false ? noIntimacyReason : undefined,
+          summary,
+          gratitude,
+          photo
+        }, user.id);
+      }
 
       // Short delay to show saving feedback if we wanted to
       setTimeout(() => setIsSaving(false), 500);
@@ -232,6 +250,29 @@ export const DailyLog: React.FC<DailyLogProps> = ({ onSaved }) => {
       toggleLogLock(dateStr);
     } else {
       // If no log exists yet, save it first as locked
+      if (user) {
+        addLog({
+          date: currentDate.toISOString(),
+          rating,
+          partnerActions: selectedPartnerActions,
+          myActions: selectedMyActions,
+          partnerLoveLanguages,
+          myLoveLanguages,
+          conflict: hasConflict === true,
+          discussionReason: hasConflict === true ? discussionReason : undefined,
+          intimacy: hasIntimacy === true,
+          noIntimacyReason: hasIntimacy === false ? noIntimacyReason : undefined,
+          summary,
+          gratitude,
+          photo,
+          isLocked: true
+        }, user.id);
+      }
+    }
+  };
+
+  const handleSaveAndLock = async () => {
+    if (user) {
       addLog({
         date: currentDate.toISOString(),
         rating,
@@ -247,27 +288,8 @@ export const DailyLog: React.FC<DailyLogProps> = ({ onSaved }) => {
         gratitude,
         photo,
         isLocked: true
-      });
+      }, user.id);
     }
-  };
-
-  const handleSaveAndLock = async () => {
-    addLog({
-      date: currentDate.toISOString(),
-      rating,
-      partnerActions: selectedPartnerActions,
-      myActions: selectedMyActions,
-      partnerLoveLanguages,
-      myLoveLanguages,
-      conflict: hasConflict === true,
-      discussionReason: hasConflict === true ? discussionReason : undefined,
-      intimacy: hasIntimacy === true,
-      noIntimacyReason: hasIntimacy === false ? noIntimacyReason : undefined,
-      summary,
-      gratitude,
-      photo,
-      isLocked: true
-    });
 
     // Notify Partner
     if (userProfile.partnerId) {
@@ -362,7 +384,7 @@ export const DailyLog: React.FC<DailyLogProps> = ({ onSaved }) => {
               {rating >= 8 ? '😍' : rating >= 5 ? '🙂' : '😔'}
             </span>
           </div>
-          <div className="bg-card-light dark:bg-card-dark p-6 pt-10 rounded-3xl border border-border-light dark:border-border-dark shadow-soft relative">
+          <Card className="p-6 pt-10 relative shadow-soft">
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none overflow-hidden"></div>
             <div className="flex flex-col gap-6 relative z-10">
               <div className="relative h-10 w-full flex items-center select-none cursor-pointer">
@@ -395,7 +417,7 @@ export const DailyLog: React.FC<DailyLogProps> = ({ onSaved }) => {
                 <span>Incrível</span>
               </div>
             </div>
-          </div>
+          </Card>
         </section>
 
         {/* Weekly Goals Section */}
@@ -418,7 +440,7 @@ export const DailyLog: React.FC<DailyLogProps> = ({ onSaved }) => {
                 const isGoalFullyMet = goal.type === 'count' && goal.completed; // Weekly target met
 
                 return (
-                  <div key={goal.id} className="flex items-center gap-3 bg-white dark:bg-card-dark p-3 rounded-xl border border-gray-100 dark:border-white/5 shadow-sm transition-all">
+                  <Card key={goal.id} className="flex items-center gap-3 p-3 shadow-sm transition-all hover:border-primary/20">
                     <button
                       onClick={() => {
                         if (isLocked) return;
@@ -456,7 +478,7 @@ export const DailyLog: React.FC<DailyLogProps> = ({ onSaved }) => {
                         )}
                       </div>
                     </div>
-                  </div>
+                  </Card>
                 );
               })}
             </div>
@@ -474,7 +496,7 @@ export const DailyLog: React.FC<DailyLogProps> = ({ onSaved }) => {
               {sortedAgreements.map(agreement => {
                 const isCompleted = agreement.completedDates.includes(selectedDateStr);
                 return (
-                  <div key={agreement.id} className="flex items-center gap-3 bg-white dark:bg-card-dark p-3 rounded-xl border border-gray-100 dark:border-white/5 shadow-sm transition-all">
+                  <Card key={agreement.id} className="flex items-center gap-3 p-3 shadow-sm transition-all hover:border-primary/20">
                     <button
                       onClick={() => !isLocked && toggleAgreement(agreement.id, selectedDateStr)}
                       disabled={isLocked}
@@ -489,7 +511,7 @@ export const DailyLog: React.FC<DailyLogProps> = ({ onSaved }) => {
                       <p className="text-sm font-bold truncate">{agreement.title}</p>
                       {agreement.timeInfo !== 'Geral' && <p className="text-xs text-text-muted">{agreement.timeInfo}</p>}
                     </div>
-                  </div>
+                  </Card>
                 );
               })}
             </div>

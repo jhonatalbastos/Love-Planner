@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { generateAIResponse } from '../lib/ai';
 import { JournalQuestion } from '../types';
-import { useApp } from '../contexts/AppContext';
+import { useAuthStore } from '../stores/useAuthStore';
+import { useContentStore } from '../stores/useContentStore';
 
 interface Props {
   onBack: () => void;
@@ -19,7 +20,15 @@ const SEED_QUESTIONS = [
 ];
 
 export const Journal: React.FC<Props> = ({ onBack }) => {
-  const { userProfile, logs, preferences, updatePreferences, journalQuestions, journalAnswers, addQuestion, saveAnswer } = useApp();
+  const userProfile = useAuthStore(state => state.userProfile);
+  const preferences = useAuthStore(state => state.preferences);
+  const user = useAuthStore(state => state.user);
+
+  const logs = useContentStore(state => state.logs);
+  const journalQuestions = useContentStore(state => state.journalQuestions);
+  const journalAnswers = useContentStore(state => state.journalAnswers);
+  const addQuestion = useContentStore(state => state.addQuestion);
+  const saveAnswer = useContentStore(state => state.saveAnswer);
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
@@ -150,13 +159,13 @@ export const Journal: React.FC<Props> = ({ onBack }) => {
   };
 
   const handleSaveAnswer = async () => {
-    if (!answer.trim() || !currentQuestion) return;
+    if (!answer.trim() || !currentQuestion || !user) return;
     setIsSaving(true);
     await saveAnswer({
       question_id: currentQuestion.id,
-      user_id: 'me', // handled by context actually
+      user_id: user.id,
       text: answer
-    });
+    }, user.id);
     setAnswer('');
     setIsAnswering(false);
     setStreak(s => s + 1);

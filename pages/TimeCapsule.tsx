@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Screen } from '../types';
-import { useApp } from '../contexts/AppContext';
+import { useAuthStore } from '../stores/useAuthStore';
+import { useContentStore } from '../stores/useContentStore';
 import { generateAIResponse } from '../lib/ai';
 
 interface TimeCapsuleProps {
@@ -8,7 +9,13 @@ interface TimeCapsuleProps {
 }
 
 export const TimeCapsule: React.FC<TimeCapsuleProps> = ({ onBack }) => {
-  const { logs, memories, addMemory, userProfile, preferences, updatePreferences } = useApp();
+  const user = useAuthStore(state => state.user);
+  const userProfile = useAuthStore(state => state.userProfile);
+  const preferences = useAuthStore(state => state.preferences);
+
+  const logs = useContentStore(state => state.logs);
+  const memories = useContentStore(state => state.memories);
+  const addMemory = useContentStore(state => state.addMemory);
   const [isGenerating, setIsGenerating] = useState(false);
 
   const currentDate = new Date();
@@ -62,7 +69,7 @@ export const TimeCapsule: React.FC<TimeCapsuleProps> = ({ onBack }) => {
 
       const cleanJson = responseText.replace(/```json|```/g, '').trim();
 
-      if (cleanJson) {
+      if (cleanJson && user) {
         const result = JSON.parse(cleanJson);
         addMemory({
           id: Date.now().toString(),
@@ -71,7 +78,7 @@ export const TimeCapsule: React.FC<TimeCapsuleProps> = ({ onBack }) => {
           content: result.content,
           mood: result.mood,
           relatedLogIds: logs.slice(0, 10).map(l => l.id)
-        });
+        }, user.id);
       }
 
     } catch (error) {

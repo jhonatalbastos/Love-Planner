@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useApp } from '../contexts/AppContext';
+import { useAuthStore } from '../stores/useAuthStore';
+import { useContentStore } from '../stores/useContentStore';
 import { jsPDF } from 'jspdf';
 
 interface Props {
@@ -7,7 +8,10 @@ interface Props {
 }
 
 export const Export: React.FC<Props> = ({ onBack }) => {
-  const { logs, goals, userProfile, stats } = useApp();
+  const userProfile = useAuthStore(state => state.userProfile);
+  const logs = useContentStore(state => state.logs);
+  const goals = useContentStore(state => state.goals);
+  const stats = useContentStore(state => state.stats);
   const [isGenerating, setIsGenerating] = useState(false);
 
   // Filter options state
@@ -18,142 +22,142 @@ export const Export: React.FC<Props> = ({ onBack }) => {
 
   const generatePDF = async () => {
     setIsGenerating(true);
-    
+
     // Slight delay to allow UI to update
     await new Promise(resolve => setTimeout(resolve, 100));
 
     try {
-        const doc = new jsPDF();
-        const pageWidth = doc.internal.pageSize.getWidth();
-        let yPos = 20;
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      let yPos = 20;
 
-        // --- Header ---
-        doc.setFontSize(22);
-        doc.setTextColor(244, 37, 54); // Primary Red
-        doc.text("Love Planner - Relatório", pageWidth / 2, yPos, { align: 'center' });
+      // --- Header ---
+      doc.setFontSize(22);
+      doc.setTextColor(244, 37, 54); // Primary Red
+      doc.text("Love Planner - Relatório", pageWidth / 2, yPos, { align: 'center' });
+      yPos += 10;
+
+      doc.setFontSize(12);
+      doc.setTextColor(100);
+      doc.text(`Casal: ${userProfile.names}`, pageWidth / 2, yPos, { align: 'center' });
+      yPos += 8;
+      doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, pageWidth / 2, yPos, { align: 'center' });
+      yPos += 20;
+
+      // --- Stats ---
+      doc.setFillColor(255, 240, 240);
+      doc.rect(10, yPos, pageWidth - 20, 25, 'F');
+      doc.setFontSize(10);
+      doc.setTextColor(50);
+      doc.text(`Dias Juntos: ${stats.daysTogether}`, 20, yPos + 10);
+      doc.text(`Nível do Casal: ${stats.level}`, 20, yPos + 18);
+      doc.text(`Total de Registros: ${logs.length}`, 110, yPos + 10);
+      doc.text(`Pontuação de Alma Gêmea: ${stats.soulmateScore}%`, 110, yPos + 18);
+      yPos += 40;
+
+      // --- Journal Entries ---
+      if (includeJournal) {
+        doc.setFontSize(16);
+        doc.setTextColor(0);
+        doc.text("Diário do Casal", 10, yPos);
         yPos += 10;
-        
-        doc.setFontSize(12);
-        doc.setTextColor(100);
-        doc.text(`Casal: ${userProfile.names}`, pageWidth / 2, yPos, { align: 'center' });
-        yPos += 8;
-        doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, pageWidth / 2, yPos, { align: 'center' });
-        yPos += 20;
 
-        // --- Stats ---
-        doc.setFillColor(255, 240, 240);
-        doc.rect(10, yPos, pageWidth - 20, 25, 'F');
-        doc.setFontSize(10);
-        doc.setTextColor(50);
-        doc.text(`Dias Juntos: ${stats.daysTogether}`, 20, yPos + 10);
-        doc.text(`Nível do Casal: ${stats.level}`, 20, yPos + 18);
-        doc.text(`Total de Registros: ${logs.length}`, 110, yPos + 10);
-        doc.text(`Pontuação de Alma Gêmea: ${stats.soulmateScore}%`, 110, yPos + 18);
-        yPos += 40;
+        // Loop through logs
+        for (const log of logs) {
+          // Check page break
+          if (yPos > 250) {
+            doc.addPage();
+            yPos = 20;
+          }
 
-        // --- Journal Entries ---
-        if (includeJournal) {
-            doc.setFontSize(16);
+          const dateStr = new Date(log.date).toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+          doc.setFontSize(12);
+          doc.setTextColor(244, 37, 54);
+          doc.text(dateStr, 10, yPos);
+          doc.setFontSize(10);
+          doc.setTextColor(100);
+          doc.text(`Nota: ${log.rating}/10`, pageWidth - 30, yPos);
+          yPos += 8;
+
+          if (log.summary) {
             doc.setTextColor(0);
-            doc.text("Diário do Casal", 10, yPos);
-            yPos += 10;
-            
-            // Loop through logs
-            for (const log of logs) {
-                // Check page break
-                if (yPos > 250) {
-                    doc.addPage();
-                    yPos = 20;
-                }
+            const splitSummary = doc.splitTextToSize(`Resumo: ${log.summary}`, pageWidth - 20);
+            doc.text(splitSummary, 10, yPos);
+            yPos += (splitSummary.length * 5) + 2;
+          }
 
-                const dateStr = new Date(log.date).toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                
-                doc.setFontSize(12);
-                doc.setTextColor(244, 37, 54);
-                doc.text(dateStr, 10, yPos);
-                doc.setFontSize(10);
-                doc.setTextColor(100);
-                doc.text(`Nota: ${log.rating}/10`, pageWidth - 30, yPos);
-                yPos += 8;
+          if (includeGratitude && log.gratitude) {
+            doc.setTextColor(80);
+            doc.setFontSize(9);
+            const splitGratitude = doc.splitTextToSize(`Gratidão: ${log.gratitude}`, pageWidth - 20);
+            doc.text(splitGratitude, 10, yPos);
+            yPos += (splitGratitude.length * 5) + 2;
+          }
 
-                if (log.summary) {
-                    doc.setTextColor(0);
-                    const splitSummary = doc.splitTextToSize(`Resumo: ${log.summary}`, pageWidth - 20);
-                    doc.text(splitSummary, 10, yPos);
-                    yPos += (splitSummary.length * 5) + 2;
-                }
+          // Photos
+          if (includePhotos && log.photo) {
+            try {
+              // Assuming log.photo is base64 string
+              // Keep aspect ratio roughly, max height 60
+              const imgProps = doc.getImageProperties(log.photo);
+              const imgWidth = 80;
+              const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
 
-                if (includeGratitude && log.gratitude) {
-                    doc.setTextColor(80);
-                    doc.setFontSize(9);
-                    const splitGratitude = doc.splitTextToSize(`Gratidão: ${log.gratitude}`, pageWidth - 20);
-                    doc.text(splitGratitude, 10, yPos);
-                    yPos += (splitGratitude.length * 5) + 2;
-                }
-
-                // Photos
-                if (includePhotos && log.photo) {
-                    try {
-                        // Assuming log.photo is base64 string
-                        // Keep aspect ratio roughly, max height 60
-                        const imgProps = doc.getImageProperties(log.photo);
-                        const imgWidth = 80;
-                        const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
-                        
-                        // Check space for image
-                        if (yPos + imgHeight > 270) {
-                            doc.addPage();
-                            yPos = 20;
-                        }
-
-                        doc.addImage(log.photo, 'JPEG', 10, yPos, imgWidth, imgHeight);
-                        yPos += imgHeight + 5;
-                    } catch (e) {
-                        console.error("Error adding image to PDF", e);
-                    }
-                }
-
-                yPos += 10; // Spacing between entries
-                doc.setDrawColor(200);
-                doc.line(10, yPos, pageWidth - 10, yPos); // Separator
-                yPos += 10;
-            }
-        }
-
-        // --- Goals ---
-        if (includeGoals) {
-             if (yPos > 250) {
+              // Check space for image
+              if (yPos + imgHeight > 270) {
                 doc.addPage();
                 yPos = 20;
+              }
+
+              doc.addImage(log.photo, 'JPEG', 10, yPos, imgWidth, imgHeight);
+              yPos += imgHeight + 5;
+            } catch (e) {
+              console.error("Error adding image to PDF", e);
             }
-            yPos += 10;
-            doc.setFontSize(16);
-            doc.setTextColor(0);
-            doc.text("Metas & Conquistas", 10, yPos);
-            yPos += 10;
+          }
 
-            const completedGoals = goals.filter(g => g.completed);
-            const activeGoals = goals.filter(g => !g.completed);
-
-            doc.setFontSize(11);
-            doc.text(`Concluídas: ${completedGoals.length} | Em andamento: ${activeGoals.length}`, 10, yPos);
-            yPos += 10;
-
-            activeGoals.forEach(g => {
-                doc.setFontSize(10);
-                doc.setTextColor(50);
-                doc.text(`[ ] ${g.title}: ${g.current}/${g.target}`, 10, yPos);
-                yPos += 6;
-            });
+          yPos += 10; // Spacing between entries
+          doc.setDrawColor(200);
+          doc.line(10, yPos, pageWidth - 10, yPos); // Separator
+          yPos += 10;
         }
+      }
 
-        doc.save(`LovePlanner_Relatorio_${new Date().toISOString().split('T')[0]}.pdf`);
+      // --- Goals ---
+      if (includeGoals) {
+        if (yPos > 250) {
+          doc.addPage();
+          yPos = 20;
+        }
+        yPos += 10;
+        doc.setFontSize(16);
+        doc.setTextColor(0);
+        doc.text("Metas & Conquistas", 10, yPos);
+        yPos += 10;
+
+        const completedGoals = goals.filter(g => g.completed);
+        const activeGoals = goals.filter(g => !g.completed);
+
+        doc.setFontSize(11);
+        doc.text(`Concluídas: ${completedGoals.length} | Em andamento: ${activeGoals.length}`, 10, yPos);
+        yPos += 10;
+
+        activeGoals.forEach(g => {
+          doc.setFontSize(10);
+          doc.setTextColor(50);
+          doc.text(`[ ] ${g.title}: ${g.current}/${g.target}`, 10, yPos);
+          yPos += 6;
+        });
+      }
+
+      doc.save(`LovePlanner_Relatorio_${new Date().toISOString().split('T')[0]}.pdf`);
 
     } catch (error) {
-        console.error(error);
-        alert("Erro ao gerar PDF. Tente novamente.");
+      console.error(error);
+      alert("Erro ao gerar PDF. Tente novamente.");
     } finally {
-        setIsGenerating(false);
+      setIsGenerating(false);
     }
   };
 
@@ -169,7 +173,7 @@ export const Export: React.FC<Props> = ({ onBack }) => {
 
       <main className="flex-1 flex flex-col gap-6 px-4 pt-4">
         <div className="relative w-full overflow-hidden rounded-xl shadow-lg group">
-          <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" style={{backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuAvN2G3skNukTG06lkjaBs_8EUWimB2T3_e7sglV99Jepv2JJefmJPXPfsuEZ-INLxd0Cp8oTS4iSGkwvZMVPsVQfo_Zk5F7toetYN6FMJakgD-NVyn2exqYbFwad3lzk3i1sy-Fyxov_8OUvu4hLaMDbYmhF7ljleroeLEwoJoWZ869vGO0ZbS2A_2sOWMmhOtxhS11grjgP6OOyaVZCSHVPc7rgSEf8mdXaKA-juPMKxEksHkmA_6f5xuR0j40d0ltXUWAaeMu7w")'}}></div>
+          <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuAvN2G3skNukTG06lkjaBs_8EUWimB2T3_e7sglV99Jepv2JJefmJPXPfsuEZ-INLxd0Cp8oTS4iSGkwvZMVPsVQfo_Zk5F7toetYN6FMJakgD-NVyn2exqYbFwad3lzk3i1sy-Fyxov_8OUvu4hLaMDbYmhF7ljleroeLEwoJoWZ869vGO0ZbS2A_2sOWMmhOtxhS11grjgP6OOyaVZCSHVPc7rgSEf8mdXaKA-juPMKxEksHkmA_6f5xuR0j40d0ltXUWAaeMu7w")' }}></div>
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10"></div>
           <div className="relative flex flex-col items-center justify-end p-6 pt-12 text-center min-h-[240px]">
             <div className="mb-4 flex size-16 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm border border-white/30 shadow-inner">
@@ -202,9 +206,9 @@ export const Export: React.FC<Props> = ({ onBack }) => {
                   </div>
                 </div>
                 <div className="relative flex h-7 w-12 items-center">
-                  <input 
-                    type="checkbox" 
-                    checked={item.state} 
+                  <input
+                    type="checkbox"
+                    checked={item.state}
                     onChange={(e) => item.setter(e.target.checked)}
                     className="peer sr-only"
                   />
@@ -220,7 +224,7 @@ export const Export: React.FC<Props> = ({ onBack }) => {
       <div className="fixed bottom-0 left-0 z-30 w-full p-4">
         <div className="absolute inset-0 -top-6 bg-gradient-to-t from-background-light via-background-light to-transparent dark:from-background-dark dark:via-background-dark pointer-events-none"></div>
         <div className="relative flex flex-col items-center gap-3">
-          <button 
+          <button
             onClick={generatePDF}
             disabled={isGenerating}
             className="relative w-full overflow-hidden rounded-full bg-primary py-4 text-center font-bold text-white shadow-lg shadow-primary/25 transition-transform active:scale-[0.98] hover:shadow-primary/40 focus:outline-none focus:ring-4 focus:ring-primary/30 disabled:opacity-70 disabled:cursor-wait"

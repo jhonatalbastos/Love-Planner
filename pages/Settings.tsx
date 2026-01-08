@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
-import { useApp } from '../contexts/AppContext';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuthStore } from '../stores/useAuthStore';
 import { UserPreferences, Screen } from '../types';
 import { supabase } from '../lib/supabase';
+import { Card } from '../components/ui/Card';
+import { Input } from '../components/ui/Input';
+import { Button } from '../components/ui/Button';
 
 const AVAILABLE_ICONS = [
   'favorite', 'volunteer_activism', 'cleaning_services', 'hearing', 'warning',
@@ -14,8 +16,15 @@ const AVAILABLE_ICONS = [
 
 export const Settings: React.FC = () => {
   const { theme, setTheme } = useTheme();
-  const { userProfile, updateUserProfile, preferences, togglePreference, updatePreferences, connectPartner } = useApp();
-  const { logout, user } = useAuth();
+
+  const user = useAuthStore(state => state.user);
+  const userProfile = useAuthStore(state => state.userProfile);
+  const preferences = useAuthStore(state => state.preferences);
+  const updateUserProfile = useAuthStore(state => state.updateUserProfile);
+  const togglePreference = useAuthStore(state => state.togglePreference);
+  const updatePreferences = useAuthStore(state => state.updatePreferences);
+  const connectPartner = useAuthStore(state => state.connectPartner);
+  const logout = useAuthStore(state => state.signOut);
 
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editForm, setEditForm] = useState(userProfile);
@@ -384,41 +393,32 @@ export const Settings: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-bold text-text-muted uppercase mb-1 block">Nome da Pessoa 1</label>
-                  <input
-                    className="w-full p-2 rounded-lg bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-sm"
-                    value={name1}
-                    placeholder="Ex: Romeu"
-                    onChange={e => {
-                      const val = e.target.value;
-                      setEditForm(prev => ({ ...prev, names: `${val} & ${name2}` }));
-                    }}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-text-muted uppercase mb-1 block">Nome da Pessoa 2</label>
-                  <input
-                    className="w-full p-2 rounded-lg bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-sm"
-                    value={name2}
-                    placeholder="Ex: Julieta"
-                    onChange={e => {
-                      const val = e.target.value;
-                      setEditForm(prev => ({ ...prev, names: `${name1} & ${val}` }));
-                    }}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-text-muted uppercase mb-1 block">Data de Início</label>
-                <input
-                  type="date"
-                  className="w-full p-2 rounded-lg bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-sm"
-                  value={editForm.startDate}
-                  onChange={e => setEditForm(prev => ({ ...prev, startDate: e.target.value }))}
+                <Input
+                  label="Nome da Pessoa 1"
+                  value={name1}
+                  placeholder="Ex: Romeu"
+                  onChange={e => {
+                    const val = e.target.value;
+                    setEditForm(prev => ({ ...prev, names: `${val} & ${name2}` }));
+                  }}
+                />
+                <Input
+                  label="Nome da Pessoa 2"
+                  value={name2}
+                  placeholder="Ex: Julieta"
+                  onChange={e => {
+                    const val = e.target.value;
+                    setEditForm(prev => ({ ...prev, names: `${name1} & ${val}` }));
+                  }}
                 />
               </div>
+
+              <Input
+                label="Data de Início"
+                type="date"
+                value={editForm.startDate}
+                onChange={e => setEditForm(prev => ({ ...prev, startDate: e.target.value }))}
+              />
 
               {/* Upload de Foto */}
               <div>
@@ -435,28 +435,26 @@ export const Settings: React.FC = () => {
                     disabled={uploading}
                   />
 
-                  <button
+                  <Button
+                    variant="secondary"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploading}
-                    className="flex-1 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-sm py-2 px-4 rounded-lg flex items-center justify-center gap-2 border border-gray-200 dark:border-white/10"
+                    isLoading={uploading}
+                    leftIcon={<span className="material-symbols-rounded">cloud_upload</span>}
+                    className="flex-1"
                   >
-                    {uploading ? (
-                      <span className="material-symbols-rounded animate-spin">sync</span>
-                    ) : (
-                      <span className="material-symbols-rounded">cloud_upload</span>
-                    )}
                     {uploading ? 'Enviando...' : 'Alterar Foto'}
-                  </button>
+                  </Button>
                 </div>
               </div>
 
-              <button
+              <Button
                 onClick={handleSaveProfile}
                 disabled={uploading}
-                className="w-full bg-primary text-white font-bold py-2 rounded-lg shadow-md mt-2 disabled:opacity-50"
+                className="w-full mt-2"
               >
                 Salvar Alterações
-              </button>
+              </Button>
             </div>
           )}
         </section>
@@ -464,7 +462,7 @@ export const Settings: React.FC = () => {
         {/* Pairing / Connection Section - NEW */}
         <section>
           <h3 className="px-1 pb-2 text-sm font-semibold uppercase tracking-wider text-text-muted/70">Conexão de Casal</h3>
-          <div className="bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-black/5 dark:border-white/5 overflow-hidden p-4">
+          <Card className="p-4">
             {userProfile.connectionStatus === 'connected' ? (
               <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-3 bg-green-50 dark:bg-green-900/10 p-3 rounded-xl border border-green-100 dark:border-green-900/30">
@@ -496,26 +494,27 @@ export const Settings: React.FC = () => {
 
                 <div className="border-t border-gray-100 dark:border-white/5 pt-4">
                   <p className="text-sm font-bold mb-2">Vincular Parceiro</p>
-                  <div className="flex gap-2">
-                    <input
-                      className="flex-1 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 outline-none focus:border-primary text-sm uppercase"
+                  <div className="flex gap-2 items-end">
+                    <Input
+                      containerClassName="flex-1"
+                      className="uppercase"
                       placeholder="INSIRA O CÓDIGO"
                       value={pairingCodeInput}
                       onChange={e => setPairingCodeInput(e.target.value.toUpperCase())}
                       maxLength={6}
                     />
-                    <button
+                    <Button
                       onClick={handleConnect}
                       disabled={isConnecting || pairingCodeInput.length < 6}
-                      className="bg-primary disabled:bg-gray-300 text-white px-4 rounded-xl font-bold shadow-sm active:scale-95 transition-all flex items-center justify-center"
+                      isLoading={isConnecting}
                     >
-                      {isConnecting ? <span className="material-symbols-rounded animate-spin text-sm">sync</span> : 'Conectar'}
-                    </button>
+                      Conectar
+                    </Button>
                   </div>
                 </div>
               </div>
             )}
-          </div>
+          </Card>
         </section>
 
 
@@ -523,7 +522,7 @@ export const Settings: React.FC = () => {
         {/* AI Configuration Section */}
         <section>
           <h3 className="px-1 pb-2 text-sm font-semibold uppercase tracking-wider text-text-muted/70">Inteligência Artificial</h3>
-          <div className="bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-black/5 dark:border-white/5 overflow-hidden p-4 space-y-4">
+          <Card className="p-4 space-y-4">
 
             <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-900/30 mb-4">
               <div className="flex items-start gap-2">
@@ -535,29 +534,25 @@ export const Settings: React.FC = () => {
             </div>
 
             <div className="animate-[fadeIn_0.2s_ease-out]">
-              <label className="text-xs font-bold text-text-muted uppercase mb-1 block">Chave API da Groq</label>
-              <input
+              <Input
                 type="password"
-                className="w-full p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 outline-none focus:border-primary text-sm font-mono"
+                label="Chave API da Groq"
                 placeholder="Cole sua chave Groq aqui..."
                 value={preferences.aiConfig?.groqKey || ''}
                 onChange={e => updatePreferences({ aiConfig: { ...preferences.aiConfig, groqKey: e.target.value } })}
+                className="font-mono"
               />
               <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" className="text-[10px] text-orange-500 hover:underline mt-1 flex items-center gap-1">
                 <span className="material-symbols-rounded text-[12px]">open_in_new</span>
                 Obter chave gratuita na Groq Cloud
               </a>
             </div>
-
-
-          </div>
-
-
+          </Card>
         </section>
 
         <section>
           <h3 className="px-1 pb-2 text-sm font-semibold uppercase tracking-wider text-text-muted/70">Aparência & Navegação</h3>
-          <div className="bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-black/5 dark:border-white/5 overflow-hidden p-2 space-y-4">
+          <Card className="p-2 space-y-4">
 
             {/* Start Screen Selector */}
             <div className="px-2">
@@ -604,7 +599,7 @@ export const Settings: React.FC = () => {
                 </label>
               ))}
             </div>
-          </div>
+          </Card>
         </section>
 
         <section>
@@ -619,7 +614,7 @@ export const Settings: React.FC = () => {
 
         <section>
           <h3 className="px-1 pb-2 text-sm font-semibold uppercase tracking-wider text-text-muted/70">Saúde e Bem-estar</h3>
-          <div className="bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-black/5 dark:border-white/5 overflow-hidden p-4 space-y-4">
+          <Card className="p-4 space-y-4">
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -657,27 +652,24 @@ export const Settings: React.FC = () => {
               <div className="pt-4 space-y-4 animate-[fadeIn_0.3s_ease-out] border-t border-black/5 dark:border-white/5">
 
                 <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-xs font-bold text-text-muted uppercase mb-1 block">Última Menstruação</label>
-                    <input
-                      type="date"
-                      className="w-full p-2 rounded-lg bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-sm"
-                      value={userProfile.cycleData.lastPeriodDate}
-                      onChange={e => updateUserProfile({
-                        cycleData: { ...userProfile.cycleData!, lastPeriodDate: e.target.value }
-                      })}
-                    />
-                  </div>
+                  <Input
+                    label="Última Menstruação"
+                    type="date"
+                    value={userProfile.cycleData.lastPeriodDate}
+                    onChange={e => updateUserProfile({
+                      cycleData: { ...userProfile.cycleData!, lastPeriodDate: e.target.value }
+                    })}
+                  />
                   <div>
                     <label className="text-xs font-bold text-text-muted uppercase mb-1 block">Duração do Ciclo</label>
                     <div className="flex items-center gap-2">
-                      <input
+                      <Input
                         type="number"
-                        className="w-full p-2 rounded-lg bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-sm"
                         value={userProfile.cycleData.cycleLength}
                         onChange={e => updateUserProfile({
                           cycleData: { ...userProfile.cycleData!, cycleLength: Number(e.target.value) }
                         })}
+                        className="w-full"
                       />
                       <span className="text-xs text-text-muted">dias</span>
                     </div>
@@ -706,12 +698,12 @@ export const Settings: React.FC = () => {
               </div>
             )}
 
-          </div>
+          </Card>
         </section>
 
         <section>
           <h3 className="px-1 pb-2 text-sm font-semibold uppercase tracking-wider text-text-muted/70">Preferências</h3>
-          <div className="bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-black/5 dark:border-white/5 divide-y divide-black/5 dark:divide-white/5 overflow-hidden">
+          <Card className="divide-y divide-black/5 dark:divide-white/5 overflow-hidden">
             {[
               { id: 'dailyReminder', icon: 'notifications', label: 'Lembrete Diário', color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-100 dark:bg-blue-900/30' },
               { id: 'coachTips', icon: 'tips_and_updates', label: 'Dicas do Mentor', color: 'text-primary dark:text-pink-400', bg: 'bg-pink-100 dark:bg-pink-900/30' },
@@ -742,17 +734,18 @@ export const Settings: React.FC = () => {
                 </div>
               );
             })}
-          </div>
+          </Card>
         </section>
 
         <div className="pt-2 pb-8 flex flex-col items-center gap-4">
-          <button
+          <Button
+            variant="secondary"
             onClick={logout}
-            className="w-full rounded-xl bg-card-light dark:bg-card-dark border border-primary/20 p-3 text-primary font-bold text-sm shadow-sm active:scale-[0.98] transition-all hover:bg-primary/5 flex items-center justify-center gap-2"
+            className="w-full text-primary"
+            leftIcon={<span className="material-symbols-rounded">logout</span>}
           >
-            <span className="material-symbols-rounded">logout</span>
             Sair da Conta
-          </button>
+          </Button>
           <p className="text-xs text-text-muted/60 dark:text-text-muted/40 font-medium">Love Planner v2.3.0</p>
         </div>
       </main>

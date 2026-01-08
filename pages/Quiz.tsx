@@ -1,6 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { Screen, Quiz as QuizType } from '../types';
-import { useApp } from '../contexts/AppContext';
+import { useInteractiveStore } from '../stores/useInteractiveStore';
+import { useAuthStore } from '../stores/useAuthStore';
+import { Card } from '../components/ui/Card';
+import { Input } from '../components/ui/Input';
+import { Button } from '../components/ui/Button';
 
 interface QuizProps {
     onNavigate: (screen: Screen) => void;
@@ -16,7 +20,12 @@ const PRESET_QUESTIONS = [
 ];
 
 export const Quiz: React.FC<QuizProps> = ({ onNavigate }) => {
-    const { quizzes, createQuiz, answerQuiz, userProfile } = useApp();
+    const quizzes = useInteractiveStore(state => state.quizzes);
+    const createQuiz = useInteractiveStore(state => state.createQuiz);
+    const answerQuiz = useInteractiveStore(state => state.answerQuiz);
+    const userProfile = useAuthStore(state => state.userProfile);
+    const user = useAuthStore(state => state.user);
+
     const [activeTab, setActiveTab] = useState<'play' | 'create'>('play');
 
     // Create Mode State
@@ -32,9 +41,9 @@ export const Quiz: React.FC<QuizProps> = ({ onNavigate }) => {
     // --- Derived State ---
     const myPendingQuizzes = useMemo(() => {
         // Quizzes created by partner that I haven't completed
+        // Placeholder check using pairingCode if available or logic
         return quizzes.filter(q =>
-            q.created_by !== userProfile.pairingCode && // Ideally check ID, but we rely on context
-            q.created_by !== 'me' && // Placeholder check, real check is below
+            q.created_by !== userProfile.pairingCode &&
             q.status === 'pending'
         ).sort((a, b) => b.created_at.localeCompare(a.created_at));
     }, [quizzes, userProfile]);
@@ -73,8 +82,18 @@ export const Quiz: React.FC<QuizProps> = ({ onNavigate }) => {
 
         if (!q || opts.some(o => !o.trim())) return alert("Preencha a pergunta e opções!");
 
-        await createQuiz(q, opts, correctOption);
-        alert("Desafio enviado! 🚀");
+        if (user) {
+            await createQuiz({
+                id: crypto.randomUUID(),
+                created_by: user.id,
+                question: q,
+                options: opts,
+                correct_answer: correctOption!,
+                status: 'pending',
+                created_at: new Date().toISOString()
+            });
+            alert("Desafio enviado! 🚀");
+        }
         setActiveTab('play');
         // Reset form
         setCustomQuestion('');
@@ -84,14 +103,16 @@ export const Quiz: React.FC<QuizProps> = ({ onNavigate }) => {
     };
 
     const handleAnswer = async (quiz: QuizType, option: string) => {
-        setAnsweringId(quiz.id);
-        const isCorrect = await answerQuiz(quiz.id, option);
-        setFeedback(isCorrect ? 'correct' : 'wrong');
+        if (user) {
+            setAnsweringId(quiz.id);
+            const isCorrect = await answerQuiz(quiz.id, option, user.id);
+            setFeedback(isCorrect ? 'correct' : 'wrong');
 
-        setTimeout(() => {
-            setAnsweringId(null);
-            setFeedback(null);
-        }, 2000);
+            setTimeout(() => {
+                setAnsweringId(null);
+                setFeedback(null);
+            }, 2000);
+        }
     };
 
     const handlePresetSelect = (idx: number) => {
@@ -151,19 +172,17 @@ export const Quiz: React.FC<QuizProps> = ({ onNavigate }) => {
                         </div>
 
                         {/* Form */}
-                        <div className="bg-white dark:bg-card-dark p-5 rounded-2xl shadow-sm border border-black/5 dark:border-white/5 space-y-4">
-                            <div>
-                                <label className="text-xs font-bold text-text-muted uppercase">Pergunta</label>
-                                <input
-                                    value={customQuestion}
-                                    onChange={e => {
-                                        setCustomQuestion(e.target.value);
-                                        setPresetIndex(null); // Clear preset if typing
-                                    }}
-                                    className="w-full mt-1 p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-transparent focus:border-primary outline-none"
-                                    placeholder="Ex: Qual meu medo secreto?"
-                                />
-                            </div>
+                        <Card className="p-5 space-y-4">
+                            <Input
+                                label="Pergunta"
+                                value={customQuestion}
+                                onChange={e => {
+                                    setCustomQuestion(e.target.value);
+                                    setPresetIndex(null); // Clear preset if typing
+                                }}
+                                className="mt-1"
+                                placeholder="Ex: Qual meu medo secreto?"
+                            />
 
                             <div>
                                 <label className="text-xs font-bold text-text-muted uppercase mb-2 block">Opções (Toque na correta)</label>
@@ -178,7 +197,7 @@ export const Quiz: React.FC<QuizProps> = ({ onNavigate }) => {
                                                     {correctOption === opt && opt !== '' ? 'check' : 'radio_button_unchecked'}
                                                 </span>
                                             </button>
-                                            <input
+                                            <Input
                                                 value={opt}
                                                 onChange={e => {
                                                     const newOpts = [...customOptions];
@@ -186,20 +205,20 @@ export const Quiz: React.FC<QuizProps> = ({ onNavigate }) => {
                                                     setCustomOptions(newOpts);
                                                 }}
                                                 placeholder={`Opção ${i + 1}`}
-                                                className="flex-1 p-3 rounded-xl bg-gray-50 dark:bg-white/5 outline-none"
+                                                containerClassName="flex-1"
                                             />
                                         </div>
                                     ))}
                                 </div>
                             </div>
 
-                            <button
+                            <Button
                                 onClick={handleCreate}
-                                className="w-full py-4 rounded-xl bg-primary text-white font-bold shadow-lg shadow-primary/30 active:scale-95 transition-transform"
+                                className="w-full py-6 text-base shadow-lg shadow-primary/30"
                             >
                                 Enviar Desafio
-                            </button>
-                        </div>
+                            </Button>
+                        </Card>
                     </div>
                 )}
 
@@ -217,7 +236,7 @@ export const Quiz: React.FC<QuizProps> = ({ onNavigate }) => {
                                     <p className="text-sm text-gray-400 italic">Nenhum desafio pendente.</p>
                                 ) : (
                                     pendingQuizzes.map(quiz => (
-                                        <div key={quiz.id} className="bg-white dark:bg-card-dark p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 relative overflow-hidden">
+                                        <Card key={quiz.id} className="p-5 relative overflow-hidden">
                                             {answeringId === quiz.id && feedback && (
                                                 <div className={`absolute inset-0 z-10 flex items-center justify-center backdrop-blur-sm ${feedback === 'correct' ? 'bg-green-500/20' : 'bg-red-500/20'} animate-[fadeIn_0.2s]`}>
                                                     <div className="bg-white dark:bg-card-dark p-4 rounded-2xl shadow-xl flex flex-col items-center animate-[bounceIn_0.3s]">
@@ -243,7 +262,7 @@ export const Quiz: React.FC<QuizProps> = ({ onNavigate }) => {
                                                     </button>
                                                 ))}
                                             </div>
-                                        </div>
+                                        </Card>
                                     ))
                                 )}
                             </div>

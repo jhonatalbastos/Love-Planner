@@ -1,11 +1,15 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { BottomNav } from './components/BottomNav';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { AppProvider, useApp } from './contexts/AppContext';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+
 import { Screen } from './types';
 import { Loading } from './components/ui/Loading';
-import { Login } from './pages/Login'; // Keep Login eager for fast TTFB for unauth users, or lazy it too? Better eager for LCP.
+import { Login } from './pages/Login';
+
+// Stores
+import { useAuthStore } from './stores/useAuthStore';
+import { useContentStore } from './stores/useContentStore';
+import { useInteractiveStore } from './stores/useInteractiveStore';
 
 // Lazy Imports for Main Pages
 const Dashboard = lazy(() => import('./pages/Dashboard').then(module => ({ default: module.Dashboard })));
@@ -53,7 +57,36 @@ const LockScreen: React.FC<{ onUnlock: () => void }> = ({ onUnlock }) => {
 
 // Inner component to handle routing based on Auth state
 const MainApp: React.FC = () => {
-  const { user, loading } = useAuth();
+  const user = useAuthStore(state => state.user);
+  const loading = useAuthStore(state => state.loading);
+
+  // Zustand Actions
+  const fetchContent = useContentStore(state => state.fetchContent);
+  const calculateStats = useContentStore(state => state.calculateStats);
+  const fetchInteractive = useInteractiveStore(state => state.fetchInteractive);
+  const userProfile = useAuthStore(state => state.userProfile);
+
+  useEffect(() => {
+    if (user) {
+      console.log("Initializing Data for User:", user.id);
+      fetchInteractive();
+    }
+  }, [user, fetchInteractive]);
+
+  // Fetch Content when Profile is loaded (to get partner ID)
+  useEffect(() => {
+    if (user && userProfile.connectionStatus) { // Simple check if profile loaded
+      fetchContent(user.id, userProfile.partnerId);
+    }
+  }, [user, userProfile.partnerId, fetchContent]);
+
+  // Calculate Stats
+  useEffect(() => {
+    if (userProfile.startDate) {
+      calculateStats(userProfile.startDate);
+    }
+  }, [userProfile.startDate, calculateStats]);
+
 
   if (loading) {
     return <Loading fullScreen message="Carregando Amor..." />;
@@ -63,16 +96,16 @@ const MainApp: React.FC = () => {
     return <Login />;
   }
 
-  // Wrap authenticated app in AppProvider which now takes user ID to scope data
-  return (
-    <AppProvider currentUser={user}>
-      <AuthenticatedLayout />
-    </AppProvider>
-  );
+  return <AuthenticatedLayout />;
 };
 
+import { useSwipeable } from 'react-swipeable';
+
+// ... (existing imports)
+
 const AuthenticatedLayout: React.FC = () => {
-  const { preferences } = useApp();
+  const preferences = useAuthStore(state => state.preferences);
+
   // Initialize current screen based on user preferences (defaulting to DailyLog if not set)
   const [currentScreen, setCurrentScreen] = useState<Screen>(preferences.defaultScreen || Screen.DailyLog);
   const [isLocked, setIsLocked] = useState(false);
@@ -87,26 +120,65 @@ const AuthenticatedLayout: React.FC = () => {
     }
   }, [preferences.biometrics, hasCheckedLock]);
 
+  // Haptic Feedback Helper
+  const vibrate = () => {
+    if (navigator.vibrate) {
+      navigator.vibrate(10); // Short light vibration
+    }
+  };
+
+  const navigateTo = (screen: Screen) => {
+    vibrate();
+    setCurrentScreen(screen);
+  };
+
+  // Swipe Logic
+  const mainTabs = [
+    Screen.DailyLog,
+    Screen.Dashboard,
+    Screen.Goals,
+    Screen.Agreements,
+    Screen.Settings
+  ];
+
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: () => {
+      const idx = mainTabs.indexOf(currentScreen);
+      if (idx !== -1 && idx < mainTabs.length - 1) {
+        navigateTo(mainTabs[idx + 1]);
+      }
+    },
+    onSwipedRight: () => {
+      const idx = mainTabs.indexOf(currentScreen);
+      if (idx !== -1 && idx > 0) {
+        navigateTo(mainTabs[idx - 1]);
+      }
+    },
+    trackMouse: false, // Disable mouse swipe
+    preventScrollOnSwipe: false,
+    delta: 50 // sensitivity
+  });
+
   const renderScreen = () => {
     switch (currentScreen) {
-      case Screen.DailyLog: return <DailyLog onSaved={() => setCurrentScreen(Screen.Dashboard)} />;
-      case Screen.Dashboard: return <Dashboard onNavigate={setCurrentScreen} />;
+      case Screen.DailyLog: return <DailyLog onSaved={() => navigateTo(Screen.Dashboard)} />;
+      case Screen.Dashboard: return <Dashboard onNavigate={navigateTo} />;
       case Screen.Goals: return <Goals />;
       case Screen.Agreements: return <Agreements />;
       case Screen.Settings: return <Settings />;
-      case Screen.TimeCapsule: return <TimeCapsule onBack={() => setCurrentScreen(Screen.Dashboard)} />;
-      case Screen.SpecialDates: return <SpecialDates onBack={() => setCurrentScreen(Screen.Dashboard)} />;
-      case Screen.Journal: return <Journal onBack={() => setCurrentScreen(Screen.Dashboard)} />;
-      case Screen.Milestones: return <Milestones onNavigate={setCurrentScreen} />;
-      case Screen.Export: return <Export onBack={() => setCurrentScreen(Screen.Dashboard)} />;
-      case Screen.AICoach: return <AICoach onBack={() => setCurrentScreen(Screen.Dashboard)} />;
-      case Screen.MonthlyReview: return <MonthlyReview onBack={() => setCurrentScreen(Screen.Dashboard)} />;
-      case Screen.Meditation: return <Meditation onNavigate={setCurrentScreen} />;
-      case Screen.Gallery: return <Gallery onNavigate={setCurrentScreen} />;
-      case Screen.Quiz: return <Quiz onNavigate={setCurrentScreen} />;
-      case Screen.VisionBoard: return <VisionBoard onNavigate={setCurrentScreen} />;
-      case Screen.Roulette: return <Roulette onNavigate={setCurrentScreen} />;
-      default: return <Dashboard onNavigate={setCurrentScreen} />;
+      case Screen.TimeCapsule: return <TimeCapsule onBack={() => navigateTo(Screen.Dashboard)} />;
+      case Screen.SpecialDates: return <SpecialDates onBack={() => navigateTo(Screen.Dashboard)} />;
+      case Screen.Journal: return <Journal onBack={() => navigateTo(Screen.Dashboard)} />;
+      case Screen.Milestones: return <Milestones onNavigate={navigateTo} />;
+      case Screen.Export: return <Export onBack={() => navigateTo(Screen.Dashboard)} />;
+      case Screen.AICoach: return <AICoach onBack={() => navigateTo(Screen.Dashboard)} />;
+      case Screen.MonthlyReview: return <MonthlyReview onBack={() => navigateTo(Screen.Dashboard)} />;
+      case Screen.Meditation: return <Meditation onNavigate={navigateTo} />;
+      case Screen.Gallery: return <Gallery onNavigate={navigateTo} />;
+      case Screen.Quiz: return <Quiz onNavigate={navigateTo} />;
+      case Screen.VisionBoard: return <VisionBoard onNavigate={navigateTo} />;
+      case Screen.Roulette: return <Roulette onNavigate={navigateTo} />;
+      default: return <Dashboard onNavigate={navigateTo} />;
     }
   };
 
@@ -132,23 +204,28 @@ const AuthenticatedLayout: React.FC = () => {
   ].includes(currentScreen);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen" {...(shouldHideBottomNav ? {} : swipeHandlers)}>
       <Suspense fallback={<Loading fullScreen message="Carregando..." />}>
         {renderScreen()}
       </Suspense>
       {!shouldHideBottomNav && (
-        <BottomNav currentScreen={currentScreen} onNavigate={setCurrentScreen} />
+        <BottomNav currentScreen={currentScreen} onNavigate={navigateTo} />
       )}
     </div>
   );
 }
 
 const App: React.FC = () => {
+  const initializeAuthListener = useAuthStore(state => state.initializeAuthListener);
+
+  useEffect(() => {
+    const unsubscribe = initializeAuthListener();
+    return () => unsubscribe();
+  }, [initializeAuthListener]);
+
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <MainApp />
-      </AuthProvider>
+      <MainApp />
     </ThemeProvider>
   );
 };

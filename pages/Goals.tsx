@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
-import { useApp } from '../contexts/AppContext';
+import { useContentStore } from '../stores/useContentStore';
+import { useAuthStore } from '../stores/useAuthStore';
 import { Goal } from '../types';
 import { SuggestionList } from '../components/ui/SuggestionList';
 import { GOAL_SUGGESTIONS } from '../data/suggestions';
+import { Modal } from '../components/ui/Modal';
+import { Input } from '../components/ui/Input';
+import { Button } from '../components/ui/Button';
+import { Card } from '../components/ui/Card';
 
 const ICON_SUGGESTIONS = [
   'favorite', 'event_available', 'phonelink_off', 'fitness_center',
@@ -11,7 +16,14 @@ const ICON_SUGGESTIONS = [
 ];
 
 export const Goals: React.FC = () => {
-  const { goals, toggleGoal, incrementGoal, addGoal, updateGoal, deleteGoal } = useApp();
+  const goals = useContentStore(state => state.goals);
+  const toggleGoal = useContentStore(state => state.toggleGoal);
+  const incrementGoal = useContentStore(state => state.incrementGoal);
+  const addGoal = useContentStore(state => state.addGoal);
+  const updateGoal = useContentStore(state => state.updateGoal);
+  const deleteGoal = useContentStore(state => state.deleteGoal);
+
+  const user = useAuthStore(state => state.user);
 
   // Date State
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -154,7 +166,7 @@ export const Goals: React.FC = () => {
         updateGoal({ ...existing, ...goalData });
       }
     } else {
-      addGoal(goalData);
+      if (user) addGoal(goalData, user.id);
     }
     setShowModal(false);
   };
@@ -267,7 +279,7 @@ export const Goals: React.FC = () => {
             const { current, completed } = getWeekStats(goal);
 
             return (
-              <div key={goal.id} className="relative overflow-visible rounded-2xl bg-card-light dark:bg-card-dark shadow-[0_4px_20px_-4px_rgba(244,37,54,0.1)] border border-primary/10 group transition-all">
+              <Card key={goal.id} className="relative overflow-visible shadow-[0_4px_20px_-4px_rgba(244,37,54,0.1)] border border-primary/10 group transition-all p-0">
                 <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none overflow-hidden h-full rounded-2xl">
                   <span className="material-symbols-rounded text-[80px] text-primary translate-x-4 -translate-y-4">{goal.icon}</span>
                 </div>
@@ -331,16 +343,17 @@ export const Goals: React.FC = () => {
                   </div>
 
                   {!completed && (
-                    <button
+                    <Button
                       onClick={() => goal.type === 'count' ? incrementGoal(goal.id) : toggleGoal(goal.id)}
-                      className="mt-2 w-full flex items-center justify-center gap-2 rounded-xl bg-primary/10 hover:bg-primary/20 py-3 text-sm font-bold text-primary transition-colors active:scale-95"
+                      className="mt-2 w-full flex items-center justify-center gap-2 py-3 text-sm font-bold active:scale-95"
+                      variant="ghost"
                     >
                       <span className="material-symbols-rounded text-[18px]">{goal.type === 'count' ? 'add_circle' : 'check_circle'}</span>
                       {goal.type === 'count' ? 'Registrar Progresso' : 'Marcar como Feito'}
-                    </button>
+                    </Button>
                   )}
                 </div>
-              </div>
+              </Card>
             );
           })
         )}
@@ -348,12 +361,13 @@ export const Goals: React.FC = () => {
 
       {/* Floating Add Button - Updated Style */}
       <div className="fixed bottom-24 right-5 z-30">
-        <button
+        <Button
           onClick={handleOpenAdd}
-          className="group flex items-center justify-center size-14 bg-white dark:bg-card-dark text-primary shadow-xl rounded-[16px] hover:scale-105 active:scale-95 transition-all duration-200 border border-primary/10"
+          className="size-14 rounded-2xl shadow-xl hover:scale-105"
+          size="icon"
         >
           <span className="material-symbols-rounded text-4xl">add</span>
-        </button>
+        </Button>
       </div>
 
       {/* Add/Edit Modal */}

@@ -27,7 +27,7 @@ export interface NavItem {
 
 export interface User {
   id: string;
-  email: string;
+  email?: string;
   name?: string;
   user_metadata?: {
     names?: string;
@@ -163,6 +163,7 @@ export interface Achievement {
   description: string;
   icon: string;
   unlockedAt?: string;
+  condition?: (stats: UserStats, logs: LogEntry[]) => boolean;
 }
 
 export interface JournalQuestion {

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Screen, DecisionList } from '../types';
-import { useApp } from '../contexts/AppContext';
+import { useInteractiveStore } from '../stores/useInteractiveStore';
+import { useAuthStore } from '../stores/useAuthStore';
 
 interface RouletteProps {
     onNavigate: (screen: Screen) => void;
@@ -9,7 +10,11 @@ interface RouletteProps {
 const COLORS = ['#FF5733', '#33FF57', '#3357FF', '#FF33A1', '#FFC300', '#DAF7A6', '#581845', '#900C3F', '#C70039', '#FF5733'];
 
 export const Roulette: React.FC<RouletteProps> = ({ onNavigate }) => {
-    const { decisionLists, addDecisionList, updateDecisionList, deleteDecisionList } = useApp();
+    const decisionLists = useInteractiveStore(state => state.decisionLists);
+    const addDecisionList = useInteractiveStore(state => state.addDecisionList);
+    const updateDecisionList = useInteractiveStore(state => state.updateDecisionList);
+    const deleteDecisionList = useInteractiveStore(state => state.deleteDecisionList);
+    const user = useAuthStore(state => state.user);
 
     const [activeListId, setActiveListId] = useState<string | null>(null);
     const [mode, setMode] = useState<'list' | 'spin' | 'edit'>('list');
@@ -148,7 +153,15 @@ export const Roulette: React.FC<RouletteProps> = ({ onNavigate }) => {
         if (activeListId) {
             await updateDecisionList(activeListId, validItems);
         } else {
-            await addDecisionList(editTitle, validItems);
+            if (user) {
+                await addDecisionList({
+                    id: crypto.randomUUID(),
+                    created_by: user.id,
+                    title: editTitle,
+                    items: validItems,
+                    created_at: new Date().toISOString()
+                });
+            }
         }
         setMode('list');
         setActiveListId(null);

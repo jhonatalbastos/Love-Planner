@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Button } from './Button';
 import { Card } from './Card';
-import { useApp } from '../contexts/AppContext';
-import { aiService } from '../services/aiService';
+import { useAuthStore } from '../../stores/useAuthStore';
+import { aiService } from '../../services/aiService';
 import { Loading } from './Loading';
 
 interface SuggestionListProps {
@@ -12,7 +12,7 @@ interface SuggestionListProps {
 }
 
 export const SuggestionList: React.FC<SuggestionListProps> = ({ type, staticSuggestions, onSelect }) => {
-    const { preferences } = useApp();
+    const preferences = useAuthStore(state => state.preferences);
     const [generatedItems, setGeneratedItems] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');

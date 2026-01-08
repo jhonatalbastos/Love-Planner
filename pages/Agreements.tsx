@@ -1,11 +1,23 @@
 import React, { useState } from 'react';
-import { useApp } from '../contexts/AppContext';
+import { useContentStore } from '../stores/useContentStore';
+import { useAuthStore } from '../stores/useAuthStore';
 import { Agreement } from '../types';
 import { SuggestionList } from '../components/ui/SuggestionList';
 import { AGREEMENT_SUGGESTIONS } from '../data/suggestions';
+import { Modal } from '../components/ui/Modal';
+import { Input } from '../components/ui/Input';
+import { Button } from '../components/ui/Button';
+import { Card } from '../components/ui/Card';
 
 export const Agreements: React.FC = () => {
-  const { agreements, toggleAgreement, addAgreement, updateAgreement, deleteAgreement, userProfile } = useApp();
+  const agreements = useContentStore(state => state.agreements);
+  const toggleAgreement = useContentStore(state => state.toggleAgreement);
+  const addAgreement = useContentStore(state => state.addAgreement);
+  const updateAgreement = useContentStore(state => state.updateAgreement);
+  const deleteAgreement = useContentStore(state => state.deleteAgreement);
+
+  const userProfile = useAuthStore(state => state.userProfile);
+  const user = useAuthStore(state => state.user);
 
   // Date State
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -172,15 +184,17 @@ export const Agreements: React.FC = () => {
         });
       }
     } else {
-      addAgreement(
-        newTitle,
-        newDetails,
-        newFrequency,
-        displayTimeInfo,
-        formStartDate || undefined,
-        formEndDate || undefined,
-        newResponsibility
-      );
+      if (user) {
+        addAgreement({
+          title: newTitle,
+          details: newDetails,
+          tag: newFrequency,
+          timeInfo: displayTimeInfo,
+          startDate: formStartDate || undefined,
+          endDate: formEndDate || undefined,
+          responsibility: newResponsibility
+        }, user.id);
+      }
     }
     setShowAddModal(false);
   };
@@ -276,7 +290,7 @@ export const Agreements: React.FC = () => {
         {sortedAgreements.map((item) => {
           const isCompleted = item.completedDates.includes(selectedDateStr);
           return (
-            <div key={item.id} className="group relative flex items-start gap-3 bg-white dark:bg-card-dark p-4 rounded-xl shadow-sm border border-gray-100 dark:border-white/5 transition-all hover:border-primary/20">
+            <Card key={item.id} className="group relative flex items-start gap-3 p-4 transition-all hover:border-primary/20">
               {/* Checkbox Area */}
               <button
                 onClick={() => toggleAgreement(item.id, selectedDateStr)}
@@ -348,68 +362,73 @@ export const Agreements: React.FC = () => {
                 )}
                 {menuOpenId === item.id && <div className="fixed inset-0 z-10" onClick={() => setMenuOpenId(null)}></div>}
               </div>
-            </div>
+            </Card>
           )
         })}
       </main>
 
       {/* FAB - Google Style */}
       <div className="fixed bottom-24 right-5 z-30">
-        <button
+        <Button
           onClick={handleOpenAdd}
-          className="group flex items-center justify-center size-14 bg-white dark:bg-card-dark text-primary shadow-xl rounded-[16px] hover:scale-105 active:scale-95 transition-all duration-200 border border-primary/10"
+          className="size-14 rounded-2xl shadow-xl hover:scale-105"
+          size="icon"
         >
           <span className="material-symbols-rounded text-4xl">add</span>
-        </button>
+        </Button>
       </div>
 
-      {/* Add/Edit Modal (Bottom Sheet Style) */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out]">
-          <div className="bg-white dark:bg-card-dark rounded-t-2xl sm:rounded-2xl p-6 w-full max-w-sm shadow-2xl animate-[slideUp_0.3s_ease-out]">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold">{editingId ? 'Editar Acordo' : 'Novo Acordo'}</h3>
-              <button onClick={() => setShowAddModal(false)} className="text-gray-400 hover:text-gray-600"><span className="material-symbols-rounded">close</span></button>
-            </div>
+      {/* Add/Edit Modal */}
+      <Modal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        title={editingId ? 'Editar Acordo' : 'Novo Acordo'}
+        footer={
+          <Button onClick={handleSave} className="w-full">
+            Salvar
+          </Button>
+        }
+      >
+        {!editingId && (
+          <SuggestionList
+            type="agreement"
+            staticSuggestions={AGREEMENT_SUGGESTIONS}
+            onSelect={(item) => {
+              setNewTitle(item.title);
+              setNewDetails(item.details);
+              setNewFrequency(item.timeInfo === 'Diário' || item.timeInfo === 'Semanal' || item.timeInfo === 'Mensal' ? item.timeInfo : 'Diário');
+              setNewResponsibility('both');
+            }}
+          />
+        )}
 
-            {!editingId && (
-              <SuggestionList
-                type="agreement"
-                staticSuggestions={AGREEMENT_SUGGESTIONS}
-                onSelect={(item) => {
-                  setNewTitle(item.title);
-                  setNewDetails(item.details);
-                  setNewFrequency(item.timeInfo === 'Diário' || item.timeInfo === 'Semanal' || item.timeInfo === 'Mensal' ? item.timeInfo : 'Diário');
-                  setNewResponsibility('both');
-                }}
-              />
-            )}
+        <div className="space-y-4">
+          <Input
+            placeholder="Título da tarefa"
+            value={newTitle}
+            onChange={(e) => setNewTitle(e.target.value)}
+            className="text-lg font-bold placeholder-gray-300 border-none px-0"
+            containerClassName="border-b border-gray-100 dark:border-white/10"
+            autoFocus
+          />
 
-            <div className="space-y-4 mb-6">
-              <div>
-                <input
-                  className="w-full p-2 bg-transparent text-lg font-bold placeholder-gray-300 border-none outline-none focus:ring-0"
-                  placeholder="Título da tarefa"
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  autoFocus
-                />
-              </div>
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-text-muted uppercase ml-1">Detalhes</label>
+            <textarea
+              className="w-full p-3 bg-gray-50 dark:bg-white/5 rounded-xl border-none outline-none text-sm resize-none h-24 placeholder-gray-400 focus:ring-1 focus:ring-primary/50 transition-all"
+              placeholder="Adicionar detalhes..."
+              value={newDetails}
+              onChange={(e) => setNewDetails(e.target.value)}
+            />
+          </div>
 
-              <div className="flex items-start gap-3">
-                <span className="material-symbols-rounded text-gray-400 mt-2">notes</span>
-                <textarea
-                  className="w-full p-2 bg-gray-50 dark:bg-white/5 rounded-lg border-none outline-none text-sm resize-none h-20 placeholder-gray-400"
-                  placeholder="Adicionar detalhes"
-                  value={newDetails}
-                  onChange={(e) => setNewDetails(e.target.value)}
-                />
-              </div>
-
-              <div className="flex items-center gap-3">
-                <span className="material-symbols-rounded text-gray-400">update</span>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-bold text-text-muted uppercase ml-1 block mb-1">Frequência</label>
+              <div className="relative">
+                <span className="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">update</span>
                 <select
-                  className="flex-1 p-2 bg-gray-50 dark:bg-white/5 rounded-lg border-none outline-none text-sm"
+                  className="w-full bg-gray-50 dark:bg-white/5 border-none rounded-xl py-3 pl-10 pr-4 outline-none text-sm appearance-none cursor-pointer focus:ring-1 focus:ring-primary/50"
                   value={newFrequency}
                   onChange={(e) => setNewFrequency(e.target.value)}
                 >
@@ -418,64 +437,65 @@ export const Agreements: React.FC = () => {
                   <option>Mensal</option>
                 </select>
               </div>
-
-              <div>
-                <label className="text-xs font-bold text-text-muted uppercase mb-2 block">Responsabilidade</label>
-                <div className="flex bg-gray-100 dark:bg-white/5 rounded-lg p-1 gap-1">
-                  {[
-                    { id: 'both', label: 'Ambos', icon: 'group' },
-                    { id: 'me', label: 'Eu', icon: 'person' },
-                    { id: 'partner', label: 'Parceiro', icon: 'favorite' }
-                  ].map(opt => (
-                    <button
-                      key={opt.id}
-                      onClick={() => setNewResponsibility(opt.id as any)}
-                      className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-md text-xs font-bold transition-all ${newResponsibility === opt.id
-                        ? 'bg-white dark:bg-card-dark shadow-sm text-primary'
-                        : 'text-gray-400 hover:text-gray-600'
-                        }`}
-                    >
-                      <span className="material-symbols-rounded text-[14px]">{opt.icon}</span>
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <span className="material-symbols-rounded text-gray-400">schedule</span>
-                <input
-                  type="time"
-                  className="flex-1 p-2 bg-gray-50 dark:bg-white/5 rounded-lg border-none outline-none text-sm"
-                  value={newTime}
-                  onChange={(e) => setNewTime(e.target.value)}
-                />
-              </div>
-
-              {/* Advanced: Date Range */}
-              <details className="text-xs text-gray-400 cursor-pointer">
-                <summary className="hover:text-primary transition-colors">Opções de validade</summary>
-                <div className="mt-2 grid grid-cols-2 gap-2 p-2 bg-gray-50 dark:bg-white/5 rounded-lg">
-                  <div>
-                    <label className="block mb-1">Início</label>
-                    <input type="date" className="w-full bg-white dark:bg-black/20 rounded p-1" value={formStartDate} onChange={e => setFormStartDate(e.target.value)} />
-                  </div>
-                  <div>
-                    <label className="block mb-1">Fim</label>
-                    <input type="date" className="w-full bg-white dark:bg-black/20 rounded p-1" value={formEndDate} onChange={e => setFormEndDate(e.target.value)} />
-                  </div>
-                </div>
-              </details>
             </div>
 
-            <div className="flex justify-end">
-              <button onClick={handleSave} className="px-6 py-2 rounded-full bg-primary text-white font-bold text-sm shadow-lg shadow-primary/30">
-                Salvar
-              </button>
+            <Input
+              label="Horário"
+              type="time"
+              value={newTime}
+              onChange={(e) => setNewTime(e.target.value)}
+              leftIcon={<span className="material-symbols-rounded">schedule</span>}
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-bold text-text-muted uppercase mb-2 block ml-1">Responsabilidade</label>
+            <div className="flex bg-gray-50 dark:bg-white/5 rounded-xl p-1 gap-1">
+              {[
+                { id: 'both', label: 'Ambos', icon: 'group' },
+                { id: 'me', label: 'Eu', icon: 'person' },
+                { id: 'partner', label: 'Parceiro', icon: 'favorite' }
+              ].map(opt => (
+                <button
+                  key={opt.id}
+                  onClick={() => setNewResponsibility(opt.id as any)}
+                  className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-bold transition-all ${newResponsibility === opt.id
+                    ? 'bg-white dark:bg-card-dark shadow-sm text-primary'
+                    : 'text-gray-400 hover:text-gray-600'
+                    }`}
+                >
+                  <span className="material-symbols-rounded text-[16px]">{opt.icon}</span>
+                  {opt.label}
+                </button>
+              ))}
             </div>
           </div>
-        </div >
-      )}
+
+          {/* Advanced: Date Range */}
+          <details className="text-xs text-gray-400 cursor-pointer group">
+            <summary className="hover:text-primary transition-colors py-2 flex items-center gap-1 font-medium">
+              <span className="material-symbols-rounded text-[16px]">tune</span>
+              Opções de validade
+            </summary>
+            <div className="mt-2 grid grid-cols-2 gap-3 p-3 bg-gray-50 dark:bg-white/5 rounded-xl animate-[fadeIn_0.2s_ease-out]">
+              <Input
+                label="Início"
+                type="date"
+                value={formStartDate}
+                onChange={e => setFormStartDate(e.target.value)}
+                containerClassName="text-gray-600 dark:text-gray-300"
+              />
+              <Input
+                label="Fim"
+                type="date"
+                value={formEndDate}
+                onChange={e => setFormEndDate(e.target.value)}
+                containerClassName="text-gray-600 dark:text-gray-300"
+              />
+            </div>
+          </details>
+        </div>
+      </Modal>
     </div >
   );
 };

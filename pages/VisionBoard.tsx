@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Screen } from '../types';
-import { useApp } from '../contexts/AppContext';
+import { useInteractiveStore } from '../stores/useInteractiveStore';
+import { useAuthStore } from '../stores/useAuthStore';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Modal } from '../components/ui/Modal';
@@ -10,14 +11,26 @@ interface VisionBoardProps {
 }
 
 export const VisionBoard: React.FC<VisionBoardProps> = ({ onNavigate }) => {
-    const { visions, addVision, deleteVision } = useApp();
+    const visions = useInteractiveStore(state => state.visions);
+    const addVision = useInteractiveStore(state => state.addVision);
+    const deleteVision = useInteractiveStore(state => state.deleteVision);
+    const user = useAuthStore(state => state.user);
+
     const [showAddModal, setShowAddModal] = useState(false);
     const [newImageUrl, setNewImageUrl] = useState('');
     const [newCaption, setNewCaption] = useState('');
 
     const handleAdd = async () => {
         if (!newImageUrl.trim()) return alert("Cole o link da imagem!");
-        await addVision(newImageUrl, newCaption);
+        if (user) {
+            await addVision({
+                id: crypto.randomUUID(),
+                created_by: user.id,
+                image_url: newImageUrl,
+                caption: newCaption,
+                created_at: new Date().toISOString()
+            });
+        }
         setShowAddModal(false);
         setNewImageUrl('');
         setNewCaption('');

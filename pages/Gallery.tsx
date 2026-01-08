@@ -1,13 +1,17 @@
 import React, { useState, useMemo } from 'react';
 import { Screen, LogEntry } from '../types';
-import { useApp } from '../contexts/AppContext';
+import { useContentStore } from '../stores/useContentStore';
+import { useAuthStore } from '../stores/useAuthStore';
 
 interface GalleryProps {
     onNavigate: (screen: Screen) => void;
 }
 
 export const Gallery: React.FC<GalleryProps> = ({ onNavigate }) => {
-    const { logs, addLog } = useApp();
+    const logs = useContentStore(state => state.logs);
+    const addLog = useContentStore(state => state.addLog);
+    const user = useAuthStore(state => state.user);
+
     const [selectedPhoto, setSelectedPhoto] = useState<LogEntry | null>(null);
     const [filterYear, setFilterYear] = useState<string>('all');
 
@@ -60,7 +64,7 @@ export const Gallery: React.FC<GalleryProps> = ({ onNavigate }) => {
         if (confirm("Tem certeza que deseja remover esta foto? O registro diário será mantido, apenas a foto será apagada.")) {
             // Create updated log without photo
             const updatedLog = { ...selectedPhoto, photo: undefined };
-            await addLog(updatedLog); // addLog handles update if date exists
+            if (user) await addLog(updatedLog, user.id); // addLog handles update if date exists
             setSelectedPhoto(null);
         }
     };
@@ -74,7 +78,7 @@ export const Gallery: React.FC<GalleryProps> = ({ onNavigate }) => {
         reader.onloadend = async () => {
             const base64String = reader.result as string;
             const updatedLog = { ...selectedPhoto, photo: base64String };
-            await addLog(updatedLog);
+            if (user) await addLog(updatedLog, user.id);
             setSelectedPhoto(updatedLog); // Update local view
         };
         reader.readAsDataURL(file);
