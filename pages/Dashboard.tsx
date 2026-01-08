@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Screen } from '../types';
 import { useApp } from '../contexts/AppContext';
+import { Button } from '../components/ui/Button';
+import { Card } from '../components/ui/Card';
 
 interface DashboardProps {
   onNavigate: (screen: Screen) => void;
@@ -152,7 +154,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         {preferences.coachTips && (
           <section
             onClick={() => onNavigate(Screen.AICoach)}
-            className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-4 shadow-md text-white relative overflow-hidden cursor-pointer"
+            className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-4 shadow-md text-white relative overflow-hidden cursor-pointer active:scale-[0.98] transition-all"
           >
             <div className="absolute top-0 right-0 p-4 opacity-20">
               <span className="material-symbols-rounded text-6xl">all_inclusive</span>
@@ -169,7 +171,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         {/* --- Health & Wellness: Mood & Hydration --- */}
         <section className="space-y-3">
           {/* Mood Check-in */}
-          <div className="bg-white dark:bg-card-dark rounded-xl p-3 shadow-sm border border-gray-100 dark:border-white/5">
+          <Card className="p-3">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-sm font-bold flex items-center gap-2">
                 <span className="material-symbols-rounded text-orange-400">sentiment_satisfied</span>
@@ -208,7 +210,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                 ))}
               </div>
             </div>
-          </div>
+          </Card>
 
           {/* Hydration Reminder */}
           <div className="bg-blue-50 dark:bg-blue-900/10 rounded-xl p-3 border border-blue-100 dark:border-blue-900/20 flex items-center justify-between">
@@ -221,7 +223,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                 <p className="text-[10px] text-blue-700 dark:text-blue-300/80">Lembre seu amor de beber água!</p>
               </div>
             </div>
-            <button
+            <Button
+              size="icon"
+              variant="secondary"
+              className="!rounded-full !text-blue-500"
               onClick={() => {
                 // In a real app, this would send a push notification
                 if (window.median?.onesignal) {
@@ -231,10 +236,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                   alert("Lembrete enviado! 💧");
                 }
               }}
-              className="size-8 rounded-full bg-white dark:bg-blue-900/50 flex items-center justify-center text-blue-500 shadow-sm active:scale-90 transition-transform"
             >
               <span className="material-symbols-rounded text-lg">send</span>
-            </button>
+            </Button>
           </div>
         </section>
 
@@ -288,7 +292,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             const nextPeriodDays = cycleLength - currentDayOfCycle;
 
             return (
-              <section className="bg-card-light dark:bg-card-dark rounded-xl p-4 shadow-sm border border-rose-100 dark:border-rose-900/30">
+              <Card className="p-4 border-rose-100 dark:border-rose-900/30">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <span className="material-symbols-rounded text-rose-500">health_and_safety</span>
@@ -313,13 +317,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                     <p className="text-xs text-text-muted italic leading-relaxed">"{tip}"</p>
                   </div>
                 </div>
-              </section>
+              </Card>
             );
           })()
         )}
 
         {/* Soulmates Score with Photo Slideshow Background */}
-        <section
+        <div
           onClick={() => onNavigate(Screen.Milestones)}
           className="relative bg-card-light dark:bg-card-dark rounded-xl p-5 shadow-soft border border-primary/5 dark:border-white/5 overflow-hidden cursor-pointer active:scale-[0.98] transition-transform"
         >
@@ -371,7 +375,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
               </p>
             </div>
           </div>
-        </section>
+        </div>
 
         {/* Level Progress */}
         <section className="flex flex-col gap-2">
@@ -390,42 +394,27 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
 
         {/* Quick Links - UPDATED TO GRID FOR VISIBILITY */}
         <section className="grid grid-cols-3 gap-2">
-          <button onClick={() => onNavigate(Screen.Roulette)} className="flex flex-col items-center justify-center gap-1 p-2 h-20 bg-white dark:bg-card-dark rounded-xl border border-gray-100 dark:border-white/5 shadow-sm active:scale-95 transition-all hover:border-primary/20">
-            <span className="material-symbols-rounded text-green-500 text-[24px]">casino</span>
-            <span className="text-xs font-bold text-center">Roleta</span>
-          </button>
-          <button onClick={() => onNavigate(Screen.TimeCapsule)} className="flex flex-col items-center justify-center gap-1 p-2 h-20 bg-white dark:bg-card-dark rounded-xl border border-gray-100 dark:border-white/5 shadow-sm active:scale-95 transition-all hover:border-primary/20">
-            <span className="material-symbols-rounded text-purple-500 text-[24px]">hourglass_top</span>
-            <span className="text-xs font-bold text-center">Cápsula</span>
-          </button>
-          <button onClick={() => onNavigate(Screen.SpecialDates)} className="flex flex-col items-center justify-center gap-1 p-2 h-20 bg-white dark:bg-card-dark rounded-xl border border-gray-100 dark:border-white/5 shadow-sm active:scale-95 transition-all hover:border-primary/20">
-            <span className="material-symbols-rounded text-rose-500 text-[24px]">event_upcoming</span>
-            <span className="text-xs font-bold text-center">Datas</span>
-          </button>
-          <button onClick={() => onNavigate(Screen.AICoach)} className="flex flex-col items-center justify-center gap-1 p-2 h-20 bg-white dark:bg-card-dark rounded-xl border border-gray-100 dark:border-white/5 shadow-sm active:scale-95 transition-all hover:border-primary/20">
-            <span className="material-symbols-rounded text-primary text-[24px]">all_inclusive</span>
-            <span className="text-xs font-bold text-center">Coach</span>
-          </button>
-          <button onClick={() => onNavigate(Screen.Export)} className="flex flex-col items-center justify-center gap-1 p-2 h-20 bg-white dark:bg-card-dark rounded-xl border border-gray-100 dark:border-white/5 shadow-sm active:scale-95 transition-all hover:border-primary/20">
-            <span className="material-symbols-rounded text-gray-500 text-[24px]">download</span>
-            <span className="text-xs font-bold text-center">PDF</span>
-          </button>
-          <button onClick={() => onNavigate(Screen.Meditation)} className="flex flex-col items-center justify-center gap-1 p-2 h-20 bg-white dark:bg-card-dark rounded-xl border border-gray-100 dark:border-white/5 shadow-sm active:scale-95 transition-all hover:border-primary/20">
-            <span className="material-symbols-rounded text-indigo-500 text-[24px]">self_improvement</span>
-            <span className="text-xs font-bold text-center">Meditação</span>
-          </button>
-          <button onClick={() => onNavigate(Screen.Gallery)} className="flex flex-col items-center justify-center gap-1 p-2 h-20 bg-white dark:bg-card-dark rounded-xl border border-gray-100 dark:border-white/5 shadow-sm active:scale-95 transition-all hover:border-primary/20">
-            <span className="material-symbols-rounded text-pink-500 text-[24px]">photo_library</span>
-            <span className="text-xs font-bold text-center">Galeria</span>
-          </button>
-          <button onClick={() => onNavigate(Screen.Quiz)} className="flex flex-col items-center justify-center gap-1 p-2 h-20 bg-white dark:bg-card-dark rounded-xl border border-gray-100 dark:border-white/5 shadow-sm active:scale-95 transition-all hover:border-primary/20">
-            <span className="material-symbols-rounded text-orange-500 text-[24px]">sports_esports</span>
-            <span className="text-xs font-bold text-center">Quiz</span>
-          </button>
-          <button onClick={() => onNavigate(Screen.VisionBoard)} className="flex flex-col items-center justify-center gap-1 p-2 h-20 bg-white dark:bg-card-dark rounded-xl border border-gray-100 dark:border-white/5 shadow-sm active:scale-95 transition-all hover:border-primary/20">
-            <span className="material-symbols-rounded text-purple-500 text-[24px]">auto_awesome</span>
-            <span className="text-xs font-bold text-center">Mural</span>
-          </button>
+          {[
+            { screen: Screen.Roulette, icon: 'casino', color: 'text-green-500', label: 'Roleta' },
+            { screen: Screen.TimeCapsule, icon: 'hourglass_top', color: 'text-purple-500', label: 'Cápsula' },
+            { screen: Screen.SpecialDates, icon: 'event_upcoming', color: 'text-rose-500', label: 'Datas' },
+            { screen: Screen.AICoach, icon: 'all_inclusive', color: 'text-primary', label: 'Coach' },
+            { screen: Screen.Export, icon: 'download', color: 'text-gray-500', label: 'PDF' },
+            { screen: Screen.Meditation, icon: 'self_improvement', color: 'text-indigo-500', label: 'Meditação' },
+            { screen: Screen.Gallery, icon: 'photo_library', color: 'text-pink-500', label: 'Galeria' },
+            { screen: Screen.Quiz, icon: 'sports_esports', color: 'text-orange-500', label: 'Quiz' },
+            { screen: Screen.VisionBoard, icon: 'auto_awesome', color: 'text-purple-500', label: 'Mural' },
+          ].map(item => (
+            <Card
+              key={item.label}
+              onClick={() => onNavigate(item.screen)}
+              hoverEffect
+              className="flex flex-col items-center justify-center gap-1 p-2 h-20"
+            >
+              <span className={`material-symbols-rounded ${item.color} text-[24px]`}>{item.icon}</span>
+              <span className="text-xs font-bold text-center">{item.label}</span>
+            </Card>
+          ))}
         </section>
 
         {/* Recent Activity (Dynamic) */}
@@ -436,7 +425,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             </div>
             <div className="flex flex-col gap-3">
               {recentLogs.map(log => (
-                <div key={log.id} className="flex items-center gap-4 p-3 rounded-xl bg-white dark:bg-card-dark border border-gray-100 dark:border-white/5 shadow-sm">
+                <Card key={log.id} className="flex items-center gap-4 p-3">
                   <div className="relative size-12 shrink-0 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center text-primary/50 dark:bg-white/5">
                     <span className="material-symbols-rounded">favorite</span>
                   </div>
@@ -454,7 +443,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                   <div className="flex items-center gap-1 text-primary text-xs font-semibold bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-md">
                     +50 XP
                   </div>
-                </div>
+                </Card>
               ))}
             </div>
           </section>
@@ -472,7 +461,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             </button>
           </div>
 
-          <div className="bg-card-light dark:bg-card-dark rounded-xl p-4 shadow-card border border-gray-100 dark:border-gray-800">
+          <Card className="p-4">
             {/* Month Navigation */}
             <div className="flex items-center justify-between mb-4">
               <button onClick={() => changeMonth(-1)} className="p-1 text-text-muted hover:bg-black/5 rounded-full">
@@ -567,7 +556,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                 <p className="text-xs text-text-muted">Nenhum evento registrado para o dia {selectedDay}.</p>
               </div>
             )}
-          </div>
+          </Card>
         </section>
       </main>
     </div>
