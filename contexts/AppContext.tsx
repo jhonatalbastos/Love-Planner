@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { LogEntry, Goal, Agreement, UserStats, SpecialDate, UserProfile, UserPreferences, Memory, User, Screen, JournalQuestion, JournalAnswer, Quiz } from '../types';
+import { LogEntry, Goal, Agreement, UserStats, SpecialDate, UserProfile, UserPreferences, Memory, User, Screen, JournalQuestion, JournalAnswer, Quiz, Vision } from '../types';
 import { supabase } from '../lib/supabase';
 
 interface AppContextType {
@@ -38,6 +38,9 @@ interface AppContextType {
   quizzes: Quiz[];
   createQuiz: (question: string, options: string[], correctAnswer: string) => Promise<void>;
   answerQuiz: (quizId: string, answer: string) => Promise<boolean>;
+  visions: Vision[];
+  addVision: (imageUrl: string, caption?: string) => Promise<void>;
+  deleteVision: (id: string) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -98,6 +101,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode, currentUser: Use
   const [journalQuestions, setJournalQuestions] = useState<JournalQuestion[]>([]);
   const [journalAnswers, setJournalAnswers] = useState<JournalAnswer[]>([]);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [visions, setVisions] = useState<Vision[]>([]);
 
   // --- Load Data from Supabase ---
   useEffect(() => {
@@ -239,6 +243,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode, currentUser: Use
       }
       const { data: qzData } = await quizQuery.order('created_at', { ascending: false });
       if (qzData) setQuizzes(qzData);
+
+      // 10. Fetch Visions (Shared)
+      let visionQuery = supabase.from('visions').select('*');
+      if (profile && profile.partner_id) {
+        visionQuery = visionQuery.or(`created_by.eq.${currentUser.id},created_by.eq.${profile.partner_id}`);
+      } else {
+        visionQuery = visionQuery.eq('created_by', currentUser.id);
+      }
+      const { data: vData } = await visionQuery.order('created_at', { ascending: false });
+      if (vData) setVisions(vData);
     };
 
     fetchData();
@@ -256,6 +270,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode, currentUser: Use
       .on('postgres_changes', { event: '*', schema: 'public', table: 'journal_questions' }, () => fetchData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'journal_answers' }, () => fetchData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'quizzes' }, () => fetchData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'visions' }, () => fetchData())
       .subscribe();
 
     // ... subscribe to others if needed
@@ -649,6 +664,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode, currentUser: Use
     return isCorrect;
   };
 
+  // --- Vision Board Logic ---
+  const addVision = async (imageUrl: string, caption?: string) => {
+    const id = crypto.randomUUID();
+    const newVision: Vision = {
+      id,
+      created_by: currentUser.id,
+      image_url: imageUrl,
+      caption,
+      created_at: new Date().toISOString()
+    };
+
+    setVisions(prev => [newVision, ...prev]);
+
+    await supabase.from('visions').insert({
+      id,
+      created_by: currentUser.id,
+      image_url: imageUrl,
+      caption
+    });
+  };
+
+  const deleteVision = async (id: string) => {
+    setVisions(prev => prev.filter(v => v.id !== id));
+    await supabase.from('visions').delete().eq('id', id);
+  };
+
   return (
     <AppContext.Provider value={{
       userProfile, preferences, stats, logs, goals, agreements, specialDates, memories, journalQuestions, journalAnswers,
@@ -656,7 +697,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode, currentUser: Use
       toggleGoal, incrementGoal, addGoal, updateGoal, deleteGoal,
       toggleAgreement, skipAgreement, addAgreement, updateAgreement, deleteAgreement,
       addSpecialDate, updateSpecialDate, deleteSpecialDate, addMemory, connectPartner,
-      addQuestion, saveAnswer, quizzes, createQuiz, answerQuiz
+      addQuestion, saveAnswer, quizzes, createQuiz, answerQuiz,
+      visions, addVision, deleteVision
     }}>
       {children}
     </AppContext.Provider>

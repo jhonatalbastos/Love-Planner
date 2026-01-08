@@ -422,6 +422,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             <span className="material-symbols-rounded text-orange-500 text-[24px]">sports_esports</span>
             <span className="text-xs font-bold text-center">Quiz</span>
           </button>
+          <button onClick={() => onNavigate(Screen.VisionBoard)} className="flex flex-col items-center justify-center gap-1 p-2 h-20 bg-white dark:bg-card-dark rounded-xl border border-gray-100 dark:border-white/5 shadow-sm active:scale-95 transition-all hover:border-primary/20">
+            <span className="material-symbols-rounded text-purple-500 text-[24px]">auto_awesome</span>
+            <span className="text-xs font-bold text-center">Mural</span>
+          </button>
         </section>
 
         {/* Recent Activity (Dynamic) */}

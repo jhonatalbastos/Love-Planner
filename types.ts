@@ -14,7 +14,8 @@ export enum Screen {
   MonthlyReview = 'MonthlyReview',
   Meditation = 'Meditation',
   Gallery = 'Gallery',
-  Quiz = 'Quiz'
+  Quiz = 'Quiz',
+  VisionBoard = 'VisionBoard'
 }
 
 export interface NavItem {
@@ -176,6 +177,14 @@ export interface JournalAnswer {
   question_id: string;
   user_id: string;
   text: string;
+  created_at: string;
+}
+
+export interface Vision {
+  id: string;
+  created_by: string;
+  image_url: string;
+  caption?: string;
   created_at: string;
 }
 
