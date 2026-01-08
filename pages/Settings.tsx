@@ -618,6 +618,98 @@ export const Settings: React.FC = () => {
         </section>
 
         <section>
+          <h3 className="px-1 pb-2 text-sm font-semibold uppercase tracking-wider text-text-muted/70">Saúde e Bem-estar</h3>
+          <div className="bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-black/5 dark:border-white/5 overflow-hidden p-4 space-y-4">
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400">
+                  <span className="material-symbols-rounded">water_drop</span>
+                </div>
+                <div>
+                  <h4 className="font-bold text-sm">Rastrear Ciclo Menstrual</h4>
+                  <p className="text-xs text-text-muted">Previsão e insights para o casal</p>
+                </div>
+              </div>
+
+              <div className="relative inline-block w-12 align-middle select-none">
+                <input
+                  type="checkbox"
+                  checked={!!userProfile.cycleData?.enabled}
+                  onChange={(e) => {
+                    updateUserProfile({
+                      cycleData: {
+                        enabled: e.target.checked,
+                        shareWithPartner: userProfile.cycleData?.shareWithPartner ?? true,
+                        lastPeriodDate: userProfile.cycleData?.lastPeriodDate || new Date().toISOString().split('T')[0],
+                        cycleLength: userProfile.cycleData?.cycleLength || 28,
+                        periodLength: userProfile.cycleData?.periodLength || 5
+                      }
+                    });
+                  }}
+                  className="peer sr-only"
+                />
+                <div className="w-12 h-6 bg-gray-200 dark:bg-gray-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-500"></div>
+              </div>
+            </div>
+
+            {userProfile.cycleData?.enabled && (
+              <div className="pt-4 space-y-4 animate-[fadeIn_0.3s_ease-out] border-t border-black/5 dark:border-white/5">
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-bold text-text-muted uppercase mb-1 block">Última Menstruação</label>
+                    <input
+                      type="date"
+                      className="w-full p-2 rounded-lg bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-sm"
+                      value={userProfile.cycleData.lastPeriodDate}
+                      onChange={e => updateUserProfile({
+                        cycleData: { ...userProfile.cycleData!, lastPeriodDate: e.target.value }
+                      })}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-text-muted uppercase mb-1 block">Duração do Ciclo</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        className="w-full p-2 rounded-lg bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-sm"
+                        value={userProfile.cycleData.cycleLength}
+                        onChange={e => updateUserProfile({
+                          cycleData: { ...userProfile.cycleData!, cycleLength: Number(e.target.value) }
+                        })}
+                      />
+                      <span className="text-xs text-text-muted">dias</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between bg-gray-50 dark:bg-white/5 p-3 rounded-lg border border-gray-100 dark:border-white/5">
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-rounded text-rose-500">favorite</span>
+                    <span className="text-sm font-medium">Compartilhar com Parceiro(a)</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    className="w-5 h-5 accent-rose-500"
+                    checked={userProfile.cycleData.shareWithPartner}
+                    onChange={e => updateUserProfile({
+                      cycleData: { ...userProfile.cycleData!, shareWithPartner: e.target.checked }
+                    })}
+                  />
+                </div>
+
+                <p className="text-[10px] text-text-muted italic text-center">
+                  *Com isso ativado, seu parceiro receberá dicas úteis baseadas na fase do seu ciclo.
+                </p>
+
+              </div>
+            )}
+
+          </div>
+        </section>
+
+        <section>
           <h3 className="px-1 pb-2 text-sm font-semibold uppercase tracking-wider text-text-muted/70">Preferências</h3>
           <div className="bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-black/5 dark:border-white/5 divide-y divide-black/5 dark:divide-white/5 overflow-hidden">
             {[

@@ -166,7 +166,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode, currentUser: Use
           photoUrl: profile.photo_url,
           pairingCode: profile.pairing_code,
           partnerName: partnerName,
-          connectionStatus: profile.partner_id ? 'connected' : 'single'
+          partnerId: profile.partner_id,
+          connectionStatus: profile.partner_id ? 'connected' : 'single',
+          cycleData: profile.cycle_data
         });
       }
 
@@ -247,7 +249,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode, currentUser: Use
       supabase.removeChannel(journalSub);
     };
 
+
   }, [currentUser]);
+
+  // --- Median.co / OneSignal Integration ---
+  useEffect(() => {
+    if (currentUser && userProfile) {
+      // Check if running in Median App
+      if (window.median?.onesignal) {
+        // Set External User ID to match Supabase ID
+        window.median.onesignal.externalUserId.set({ externalId: currentUser.id });
+
+        // Optional: Send tags for segmentation
+        window.median.onesignal.tags.set({
+          tags: {
+            status: userProfile.connectionStatus,
+            partner: userProfile.partnerId || 'none'
+          }
+        });
+      }
+    }
+  }, [currentUser, userProfile]);
 
   // Persist Prefs locally
   useEffect(() => {
@@ -292,7 +314,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode, currentUser: Use
     const { data, error } = await supabase.from('profiles').update({
       names: newProfile.names,
       start_date: newProfile.startDate,
-      photo_url: newProfile.photoUrl
+      photo_url: newProfile.photoUrl,
+      cycle_data: newProfile.cycleData
     }).eq('id', currentUser.id).select();
 
     if (error) {

@@ -37,7 +37,17 @@ export interface UserProfile {
   photoUrl: string;
   pairingCode: string;
   partnerName?: string;
+  partnerId?: string;
   connectionStatus: 'single' | 'connected';
+  cycleData?: CycleData;
+}
+
+export interface CycleData {
+  enabled: boolean;
+  shareWithPartner: boolean;
+  lastPeriodDate: string;
+  cycleLength: number;
+  periodLength: number;
 }
 
 export interface ActionOption {
@@ -162,4 +172,19 @@ export interface JournalAnswer {
   user_id: string;
   text: string;
   created_at: string;
+}
+
+declare global {
+  interface Window {
+    median?: {
+      onesignal?: {
+        externalUserId: {
+          set: (data: { externalId: string }) => void;
+        };
+        tags: {
+          set: (data: { tags: Record<string, string | number | boolean> }) => void;
+        };
+      };
+    };
+  }
 }

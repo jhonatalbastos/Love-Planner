@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../contexts/AppContext';
+import { sendNotification } from '../lib/notifications';
+
 
 interface DailyLogProps {
   onSaved?: () => void;
@@ -249,7 +251,7 @@ export const DailyLog: React.FC<DailyLogProps> = ({ onSaved }) => {
     }
   };
 
-  const handleSaveAndLock = () => {
+  const handleSaveAndLock = async () => {
     addLog({
       date: currentDate.toISOString(),
       rating,
@@ -266,6 +268,15 @@ export const DailyLog: React.FC<DailyLogProps> = ({ onSaved }) => {
       photo,
       isLocked: true
     });
+
+    // Notify Partner
+    if (userProfile.partnerId) {
+      await sendNotification(
+        [userProfile.partnerId],
+        "Diário do Amor",
+        `${myName} acabou de preencher o diário de hoje! 💕`
+      );
+    }
 
     // Optional: could scroll to top smoothly
     window.scrollTo({ top: 0, behavior: 'smooth' });
