@@ -12,7 +12,8 @@ export enum Screen {
   Export = 'Export',
   AICoach = 'AICoach',
   MonthlyReview = 'MonthlyReview',
-  Meditation = 'Meditation'
+  Meditation = 'Meditation',
+  Gallery = 'Gallery'
 }
 
 export interface NavItem {
